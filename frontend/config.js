@@ -1,2 +1,2 @@
-// URL pública do backend Node.js (Render). Preencha após o primeiro deploy.
-window.RIFTLAB_API_URL = '';
+// URL pública da API do RiftLab hospedada no Render.
+window.RIFTLAB_API_URL = 'https://riftlab-api.onrender.com';
