@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101414"><title>RiftLab — Conheça seu próximo pick</title>
+<link rel="stylesheet" href="./styles.css"></head>
+<body><div class="shell"><header class="topbar"><div class="brand"><div class="brandmark">✦</div>rift<em>lab</em></div><nav class="nav"><button class="active" data-view="guide">Campeões</button><button data-view="builder">Composições</button></nav><div class="topright">UM GUIA FEITO PELA COMUNIDADE</div></header>
+<section class="hero"><div><div class="eyebrow">Seu próximo pick começa aqui</div><h1>Conheça. Combine.<br>Entre no Rift.</h1><p>Explore campeões e monte uma equipe com ferramentas para pensar além da sua rota.</p></div><div class="patch"><i></i>Projeto demonstrativo · dados ilustrativos</div></section>
+<main class="content"><section class="panel builder-panel" id="builder"><div class="builder-heading"><div><div class="eyebrow">Monte o draft</div><h2>Compare as composições</h2></div><span class="count" id="count">0 / 5 · 0 / 5</span></div><p class="builder-sub">Clique em um campeão, escolha a rota e adicione à sua equipe ou à equipe adversária.</p><div class="team-columns"><section class="team-card"><h3>Sua equipe <span>AZUL</span></h3><div class="team-slots" id="ally-slots"></div></section><section class="team-card enemy"><h3>Adversário <span>VERMELHO</span></h3><div class="team-slots" id="enemy-slots"></div></section></div><section class="matchup-panel"><div class="eyebrow">Confrontos por rota</div><div id="matchups"></div><p class="note">O link abre a lista de confrontos do seu campeão no OP.GG. Confira o adversário e ajuste os filtros para BR, Todas as ligas e patch atual. O RiftLab não importa os percentuais do OP.GG.</p></section><button class="clear" id="clear">Limpar as duas equipes</button><div class="save-tools"><button class="save-composition-button" id="save-composition" type="button">Salvar e compartilhar composição</button><span id="save-status" role="status" aria-live="polite"></span></div></section><section class="panel simulation-panel" id="simulator"><div class="sim-heading"><div><div class="eyebrow">Uma partida, minuto a minuto</div><h2>Simule a partida</h2><p>Veja os dez campeões ocuparem suas rotas, rotacionarem para objetivos e disputarem lutas no mapa.</p></div><button id="simulate" disabled>Complete as duas equipes</button></div><div class="sim-result" id="simulation-result" aria-live="polite"><div class="sim-empty">Monte as duas equipes com cinco campeões para liberar a simulação.</div></div><p class="sim-disclaimer">Simulação recreativa: usa os atributos e classes dos campeões, com movimentação, eventos e resultados aleatórios. Não reproduz uma partida real nem usa taxas do OP.GG.</p></section><section class="panel roster" id="guide"><div class="toolbar"><label class="search"><span>⌕</span><input id="search" placeholder="Buscar campeão..." autocomplete="off"></label><select class="select" id="sort"><option value="az">Nome: A–Z</option><option value="role">Função</option></select></div><div class="roles" id="roles"></div><div class="grid" id="grid"></div></section>
+</main>
+<footer class="footer"><span><strong>riftlab</strong> · protótipo 1.4 · rotas sem teleporte</span><span>Não afiliado à Riot Games.</span></footer></div><dialog id="picker-dialog"><div class="dialog-head"><strong>Escolha um campeão</strong><button onclick="document.querySelector('#picker-dialog').close()" aria-label="Fechar">×</button></div><div class="picker-context" id="picker-context">Buscando para a rota</div><label class="picker-search"><span>⌕</span><input id="picker-search" type="search" placeholder="Digite o nome do campeão..." autocomplete="off"></label><div class="picker-results" id="picker-results"></div></dialog><dialog id="champion-dialog"><div class="dialog-head"><strong>Guia do campeão</strong><button onclick="document.querySelector('#champion-dialog').close()" aria-label="Fechar">×</button></div><div class="detail-content" id="detail-content"></div><div class="pick-actions"><label for="position-select">Rota desta escolha</label><select id="position-select"><option value="Topo">Topo</option><option value="Selva">Selva</option><option value="Meio">Meio</option><option value="Atirador">Atirador</option><option value="Suporte">Suporte</option></select><div><button id="add-ally">Adicionar à minha equipe</button><button id="add-enemy">Adicionar ao adversário</button></div></div></dialog><div class="toast" id="toast"></div>
+<script src="./config.js"></script><script src="./app.js"></script></body></html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
