@@ -21,9 +21,9 @@ function inferRole(tags) {
 }
 const roles = ['Todas', 'Topo', 'Selva', 'Meio', 'Atirador', 'Suporte'];
 let champions = [],
-  team = [],
   activeRole = 'Todas',
   patchVersion = '';
+const championDetails = new Map();
 const grid = document.querySelector('#grid'),
   search = document.querySelector('#search');
 function metrics(tags) {
@@ -78,6 +78,7 @@ async function loadChampions() {
     renderGrid();
     renderTeam();
     if (document.querySelector('#picker-dialog').open) renderPickerResults();
+    startQuizChallenge();
     await loadSharedComposition();
   } catch (e) {
     document.querySelector('.patch').innerHTML =
@@ -86,12 +87,181 @@ async function loadChampions() {
       '<div class="empty">Não deu para carregar o catálogo oficial. Confira sua conexão e atualize a página.</div>';
   }
 }
+async function getChampionDetail(id) {
+  if (!championDetails.has(id)) {
+    const request = fetch(
+      `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/data/pt_BR/champion/${id}.json`,
+    )
+      .then((response) => {
+        if (!response.ok)
+          throw new Error('Não foi possível carregar os dados do campeão.');
+        return response.json();
+      })
+      .then((result) => result.data[id])
+      .catch((error) => {
+        championDetails.delete(id);
+        throw error;
+      });
+    championDetails.set(id, request);
+  }
+  return championDetails.get(id);
+}
 function normalizeChampionName(value) {
   return String(value ?? '')
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]/g, '');
+}
+let quizChallenge = null,
+  quizAttempts = 3,
+  quizFinished = false,
+  quizLastChampion = null,
+  quizSelectedId = null,
+  quizGuesses = [];
+async function startQuizChallenge() {
+  const message = document.querySelector('#quiz-message');
+  if (!champions.length || !message) return;
+  const pool = champions.filter((champion) => champion.id !== quizLastChampion);
+  const champion = pool[Math.floor(Math.random() * pool.length)] || champions[0];
+  message.textContent = 'Preparando uma habilidade oficial...';
+  document.querySelector('#quiz-submit').disabled = true;
+  try {
+    const detail = await getChampionDetail(champion.id);
+    const spells = detail.spells.filter((spell) => spell.image?.full);
+    if (!spells.length)
+      throw new Error('Este campeão não tem habilidades disponíveis.');
+    const spell = spells[Math.floor(Math.random() * spells.length)];
+    quizChallenge = { champion, spell, spellIndex: detail.spells.indexOf(spell) };
+    quizLastChampion = champion.id;
+    quizAttempts = 3;
+    quizFinished = false;
+    quizSelectedId = null;
+    quizGuesses = [];
+    const image = document.querySelector('#quiz-skill');
+    image.src = `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/spell/${spell.image.full}`;
+    image.alt = 'Ícone distorcido de uma habilidade';
+    const rotations = ['90deg', '180deg', '270deg'];
+    const initialRotation = rotations[Math.floor(Math.random() * rotations.length)];
+    image.style.setProperty('--quiz-rotation', initialRotation);
+    image.style.setProperty('--quiz-current-rotation', initialRotation);
+    image.style.setProperty('--quiz-mirror', Math.random() < 0.5 ? '-1' : '1');
+    image.dataset.level = '0';
+    document.querySelector('#quiz-skill-label').textContent = 'Habilidade misteriosa';
+    document.querySelector('#quiz-reveal').textContent =
+      'Imagem oculta · 0 de 3 pistas reveladas';
+    document.querySelector('#quiz-answer').value = '';
+    document.querySelector('#quiz-answer').disabled = false;
+    document.querySelector('#quiz-guesses').replaceChildren();
+    document.querySelector('#quiz-next').hidden = true;
+    document.querySelector('#quiz-submit').disabled = false;
+    updateQuizAttempts();
+    message.textContent = 'Digite um nome ou escolha uma sugestão.';
+  } catch (error) {
+    message.textContent = 'Não foi possível preparar o desafio. Tente novamente.';
+    document.querySelector('#quiz-next').hidden = false;
+    document.querySelector('#quiz-submit').disabled = true;
+  }
+}
+function updateQuizAttempts() {
+  document.querySelector('#quiz-attempts').textContent =
+    `${quizAttempts} ${quizAttempts === 1 ? 'tentativa' : 'tentativas'}`;
+}
+function renderQuizSuggestions() {
+  const input = document.querySelector('#quiz-answer');
+  const query = normalizeChampionName(input.value);
+  const container = document.querySelector('#quiz-suggestions');
+  quizSelectedId = null;
+  if (!query || quizFinished) {
+    container.replaceChildren();
+    container.hidden = true;
+    return;
+  }
+  const matches = champions
+    .filter((champion) => normalizeChampionName(champion.name).includes(query))
+    .slice(0, 8);
+  container.innerHTML = matches
+    .map(
+      (champion) =>
+        `<button type="button" role="option" data-quiz-id="${champion.id}"><img src="https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}" alt=""><span>${champion.name}</span></button>`,
+    )
+    .join('');
+  container.hidden = !matches.length;
+  container.querySelectorAll('[data-quiz-id]').forEach((button) => {
+    button.onclick = () => {
+      const champion = champions.find((item) => item.id === button.dataset.quizId);
+      if (!champion) return;
+      input.value = champion.name;
+      quizSelectedId = champion.id;
+      container.replaceChildren();
+      container.hidden = true;
+      input.focus();
+    };
+  });
+}
+function finishQuiz(won) {
+  quizFinished = true;
+  const image = document.querySelector('#quiz-skill');
+  image.dataset.level = '3';
+  image.style.setProperty('--quiz-rotation', '0deg');
+  image.style.setProperty('--quiz-current-rotation', '0deg');
+  image.style.setProperty('--quiz-mirror', '1');
+  image.alt = `Habilidade ${quizChallenge.spell.name} de ${quizChallenge.champion.name}`;
+  document.querySelector('#quiz-skill-label').textContent =
+    `${quizChallenge.spell.name} · ${['Q', 'W', 'E', 'R'][quizChallenge.spellIndex] || 'Habilidade'}`;
+  document.querySelector('#quiz-reveal').textContent =
+    `Resposta: ${quizChallenge.champion.name}`;
+  document.querySelector('#quiz-message').textContent = won
+    ? `Acertou! Era ${quizChallenge.champion.name}.`
+    : `As tentativas acabaram. O campeão era ${quizChallenge.champion.name}.`;
+  document.querySelector('#quiz-answer').disabled = true;
+  document.querySelector('#quiz-submit').disabled = true;
+  document.querySelector('#quiz-next').hidden = false;
+  document.querySelector('#quiz-suggestions').hidden = true;
+}
+function submitQuizAnswer() {
+  if (!quizChallenge || quizFinished) return;
+  const value = document.querySelector('#quiz-answer').value.trim();
+  const normalized = normalizeChampionName(value);
+  const guess =
+    champions.find((champion) => champion.id === quizSelectedId) ||
+    champions.find((champion) => normalizeChampionName(champion.name) === normalized);
+  const message = document.querySelector('#quiz-message');
+  if (!value || !guess) {
+    message.textContent = 'Escolha um campeão válido na lista de sugestões.';
+    return;
+  }
+  if (quizGuesses.includes(guess.id)) {
+    message.textContent = `${guess.name} já foi tentado. Escolha outro campeão.`;
+    return;
+  }
+  quizGuesses.push(guess.id);
+  const chip = document.createElement('span');
+  chip.textContent = guess.name;
+  document.querySelector('#quiz-guesses').append(chip);
+  document.querySelector('#quiz-answer').value = '';
+  renderQuizSuggestions();
+  if (guess.id === quizChallenge.champion.id) {
+    finishQuiz(true);
+    return;
+  }
+  quizAttempts--;
+  updateQuizAttempts();
+  document.querySelector('#quiz-skill').dataset.level = String(3 - quizAttempts);
+  const rotation = Number.parseFloat(
+    document.querySelector('#quiz-skill').style.getPropertyValue('--quiz-rotation'),
+  );
+  document
+    .querySelector('#quiz-skill')
+    .style.setProperty(
+      '--quiz-current-rotation',
+      `${rotation * (quizAttempts === 2 ? 0.55 : 0.2)}deg`,
+    );
+  document.querySelector('#quiz-reveal').textContent =
+    `${3 - quizAttempts} de 3 pistas reveladas`;
+  if (!quizAttempts) finishQuiz(false);
+  else
+    message.textContent = `Ainda não! A habilidade ficou mais nítida. ${quizAttempts === 1 ? 'Resta 1 tentativa.' : `Restam ${quizAttempts} tentativas.`}`;
 }
 function renderRoles() {
   document.querySelector('#roles').innerHTML = roles
@@ -153,12 +323,8 @@ function showChampion(id) {
   dialog.showModal();
   document.querySelector('#detail-content').innerHTML =
     `<div class="detail-top"><img src="https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}" alt=""><div><span class="eyebrow">${champion.roles.join(' / ')} · ${champion.tags.join(' / ')}</span><h2>${champion.name}</h2><p>${champion.title}</p></div></div><p class="detail-blurb">${champion.blurb}</p><div class="detail-stats"><span>Ataque <b>${champion.info.attack}/10</b></span><span>Defesa <b>${champion.info.defense}/10</b></span><span>Magia <b>${champion.info.magic}/10</b></span><span>Dificuldade <b>${champion.info.difficulty}/10</b></span></div><div class="detail-skills">Carregando habilidades...</div>`;
-  fetch(
-    `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/data/pt_BR/champion/${champion.id}.json`,
-  )
-    .then((r) => r.json())
-    .then((result) => {
-      const d = result.data[champion.id];
+  getChampionDetail(champion.id)
+    .then((d) => {
       document.querySelector('.detail-skills').innerHTML =
         `<h3>Habilidades</h3><div class="skill"><img src="https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/passive/${d.passive.image.full}" alt=""><div><b>${d.passive.name} · Passiva</b><p>${d.passive.description}</p></div></div>${d.spells.map((s, i) => `<div class="skill"><img src="https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/spell/${s.image.full}" alt=""><div><b>${s.name} · ${['Q', 'W', 'E', 'R'][i]}</b><p>${s.description}</p></div></div>`).join('')}`;
     })
@@ -170,7 +336,8 @@ function showChampion(id) {
 const laneKeys = ['Topo', 'Selva', 'Meio', 'Atirador', 'Suporte'];
 let teams = { ally: {}, enemy: {} },
   selectedChampion = null,
-  simulationInterval = null;
+  simulationInterval = null,
+  simulationMotionInterval = null;
 let pickerTarget = null;
 function openPicker(side, lane) {
   pickerTarget = { side, lane };
@@ -311,6 +478,10 @@ function renderTeam() {
     clearInterval(simulationInterval);
     simulationInterval = null;
   }
+  if (simulationMotionInterval) {
+    clearInterval(simulationMotionInterval);
+    simulationMotionInterval = null;
+  }
   if (simButton) {
     simButton.disabled = !ready;
     simButton.textContent = ready ? 'Simular uma partida' : 'Complete as duas equipes';
@@ -340,6 +511,7 @@ function teamPower(team) {
 function simulateMatch() {
   if (laneKeys.some((l) => !teams.ally[l] || !teams.enemy[l])) return;
   if (simulationInterval) clearInterval(simulationInterval);
+  if (simulationMotionInterval) clearInterval(simulationMotionInterval);
   const bluePower = teamPower(teams.ally),
     redPower = teamPower(teams.enemy),
     powerGap = (bluePower - redPower) / Math.max(bluePower + redPower, 1),
@@ -351,7 +523,7 @@ function simulateMatch() {
     button = document.querySelector('#simulate');
   button.disabled = true;
   button.textContent = 'Partida em andamento…';
-  result.innerHTML = `<div class="sim-stage"><div class="sim-live"><div class="sim-clock" id="sim-clock">00:00</div><div class="sim-live-copy"><small>O que está acontecendo</small><strong id="live-event">Os dez campeões entram no Rift e seguem para suas rotas.</strong></div></div><div class="sim-layout"><div><div class="map-viewport" id="map-viewport"><img class="map-image" src="https://ddragon.leagueoflegends.com/cdn/6.8.1/img/map/map11.png" alt="Mapa do Summoner’s Rift"><span class="map-label top">Topo</span><span class="map-label mid">Meio</span><span class="map-label bot">Inferior</span><span class="map-base">BASE AZUL</span><span class="map-base red-base">BASE VERMELHA</span><div class="objective-pin" id="dragon-pin">DRAGÃO</div><div class="objective-pin baron" id="baron-pin">ARAUTO</div><div class="unit-layer" id="unit-layer"></div></div><div class="map-legend"><span><i class="legend-dot"></i>Sua equipe</span><span><i class="legend-dot red"></i>Adversário</span><span><i class="legend-dot gold"></i>Objetivo</span></div></div><aside class="sim-rail"><div class="sim-scoreboard"><div class="score-card"><span>AZUL · SUA EQUIPE</span><strong id="blue-kills">0 abates</strong></div><div class="score-card red"><span>VERMELHO · ADVERSÁRIO</span><strong id="red-kills">0 abates</strong></div></div><div class="sim-feed"><h3>Momentos importantes</h3><ol id="event-feed"></ol></div><div class="score-card"><span>VANTAGEM ESTIMADA DO MODELO</span><strong style="color:var(--text)" id="sim-chance">Azul ${blueChance.toFixed(1)}% · Vermelho ${(100 - blueChance).toFixed(1)}%</strong></div></aside></div><div id="sim-finish"></div></div>`;
+  result.innerHTML = `<div class="sim-stage"><div class="sim-live"><div class="sim-clock" id="sim-clock">00:00</div><div class="sim-live-copy"><small>O que está acontecendo</small><strong id="live-event">Os dez campeões entram no Rift e seguem para suas rotas.</strong></div></div><div class="sim-layout"><div><div class="map-viewport" id="map-viewport"><img class="map-image" src="https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/map/map11.png" alt="Mapa do Summoner’s Rift"><span class="map-label top">Topo</span><span class="map-label mid">Meio</span><span class="map-label bot">Inferior</span><span class="map-base">BASE AZUL</span><span class="map-base red-base">BASE VERMELHA</span><div class="objective-pin" id="dragon-pin">DRAGÃO</div><div class="objective-pin baron" id="baron-pin">ARAUTO</div><div class="unit-layer" id="unit-layer"></div></div><div class="map-legend"><span><i class="legend-dot"></i>Sua equipe</span><span><i class="legend-dot red"></i>Adversário</span><span><i class="legend-dot gold"></i>Objetivo</span></div></div><aside class="sim-rail"><div class="sim-scoreboard"><div class="score-card"><span>AZUL · SUA EQUIPE</span><strong id="blue-kills">0 abates</strong></div><div class="score-card red"><span>VERMELHO · ADVERSÁRIO</span><strong id="red-kills">0 abates</strong></div></div><div class="sim-feed"><h3>Momentos importantes</h3><ol id="event-feed"></ol></div><div class="score-card"><span>VANTAGEM ESTIMADA DO MODELO</span><strong style="color:var(--text)" id="sim-chance">Azul ${blueChance.toFixed(1)}% · Vermelho ${(100 - blueChance).toFixed(1)}%</strong></div></aside></div><div id="sim-finish"></div></div>`;
   const teamsData = { blue: teams.ally, red: teams.enemy };
   const starts = {
     blue: {
@@ -416,10 +588,6 @@ function simulateMatch() {
       ],
     },
   };
-  const laneTargets = {
-    blue: { Topo: [78, 15], Meio: [81, 19], Atirador: [86, 18] },
-    red: { Topo: [20, 29], Meio: [19, 81], Atirador: [15, 86] },
-  };
   function routePoint(points, t) {
     const scaled = Math.max(0, Math.min(1, t)) * (points.length - 1),
       i = Math.min(points.length - 2, Math.floor(scaled)),
@@ -430,6 +598,7 @@ function simulateMatch() {
     ];
   }
   const layer = document.querySelector('#unit-layer');
+  const units = new Map();
   for (const side of ['blue', 'red'])
     for (const lane of laneKeys) {
       const c = teamsData[side][lane],
@@ -439,8 +608,13 @@ function simulateMatch() {
       marker.id = `unit-${side}-${lane}`;
       marker.style.left = p[0] + '%';
       marker.style.top = p[1] + '%';
+      marker.dataset.x = String(p[0]);
+      marker.dataset.y = String(p[1]);
+      marker.dataset.targetX = String(p[0]);
+      marker.dataset.targetY = String(p[1]);
       marker.innerHTML = `<img src="https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${c.image.full}" alt=""><span class="unit-name">${c.name}</span>`;
       layer.appendChild(marker);
+      units.set(marker.id, marker);
     }
   const feed = document.querySelector('#event-feed');
   let blueKills = 0,
@@ -449,16 +623,10 @@ function simulateMatch() {
     return `${String(min).padStart(2, '0')}:00`;
   }
   function move(side, lane, x, y) {
-    const el = document.querySelector(`#unit-${side}-${lane}`);
+    const el = units.get(`unit-${side}-${lane}`);
     if (el) {
-      el.style.left = x + '%';
-      el.style.top = y + '%';
-    }
-  }
-  function resetSide(side) {
-    for (const lane of laneKeys) {
-      const p = starts[side][lane];
-      move(side, lane, p[0], p[1]);
+      el.dataset.targetX = String(Math.max(3, Math.min(97, x)));
+      el.dataset.targetY = String(Math.max(3, Math.min(97, y)));
     }
   }
   function objectiveMove(which, onlySide = null) {
@@ -478,13 +646,33 @@ function simulateMatch() {
         );
       });
   }
-  function gatherMid() {
-    for (const side of ['blue', 'red'])
-      laneKeys.forEach((lane, i) => {
-        const d = side === 'blue' ? -1 : 1;
-        move(side, lane, 50 + d * (5 + (i % 3) * 3), 50 + (i - 2) * 5);
-      });
-  }
+  let lastMotionAt = performance.now();
+  simulationMotionInterval = setInterval(() => {
+    const now = performance.now();
+    const dt = Math.min(100, now - lastMotionAt);
+    lastMotionAt = now;
+    for (const marker of units.values()) {
+      let x = Number(marker.dataset.x),
+        y = Number(marker.dataset.y);
+      const tx = Number(marker.dataset.targetX),
+        ty = Number(marker.dataset.targetY),
+        dx = tx - x,
+        dy = ty - y,
+        distance = Math.hypot(dx, dy);
+      if (distance < 0.025) {
+        x = tx;
+        y = ty;
+      } else {
+        const step = Math.min(distance * 0.22, (11 * dt) / 1000);
+        x += (dx / distance) * step;
+        y += (dy / distance) * step;
+      }
+      marker.dataset.x = String(x);
+      marker.dataset.y = String(y);
+      marker.style.left = `${x}%`;
+      marker.style.top = `${y}%`;
+    }
+  }, 40);
   function publish(min, text, kind = '') {
     document.querySelector('#sim-clock').textContent = fmt(min);
     const live = document.querySelector('#live-event');
@@ -498,7 +686,9 @@ function simulateMatch() {
     feed.prepend(item);
   }
   let mapMode = 'lane',
-    pushSide = 'blue';
+    pushSide = 'blue',
+    fightLane = 'Meio',
+    retreatSide = null;
   function moveLaneSide(side, progress, minute) {
     for (const lane of ['Topo', 'Meio', 'Atirador']) {
       const p = routePoint(lanePaths[side][lane], progress);
@@ -537,6 +727,18 @@ function simulateMatch() {
       jp[0] + Math.sin(minute * 0.7) * 1.4,
       jp[1] + Math.cos(minute * 0.6) * 1.4,
     );
+    if (retreatSide === side && minute < 15) {
+      const retreatPoint = routePoint(
+        lanePaths[side].Meio,
+        Math.max(0, progress - 0.18),
+      );
+      move(side, 'Meio', retreatPoint[0], retreatPoint[1]);
+      const marker = units.get(`unit-${side}-Meio`);
+      if (marker) marker.dataset.state = 'retreat';
+    } else {
+      const marker = units.get(`unit-${side}-Meio`);
+      if (marker) marker.dataset.state = 'lane';
+    }
   }
   function tickMap(minute) {
     const progress = Math.max(0, Math.min((minute - 1) / 36, 0.72));
@@ -581,34 +783,37 @@ function simulateMatch() {
         });
       }
     } else if (mapMode === 'fight') {
-      const cluster = {
-        blue: [
-          [-8, -4],
-          [-5, 4],
-          [-2, -1],
-          [2, 5],
-          [5, -3],
-        ],
-        red: [
-          [8, 4],
-          [5, -4],
-          [2, 1],
-          [-2, -5],
-          [-5, 3],
-        ],
-      };
-      for (const side of ['blue', 'red'])
-        laneKeys.forEach((lane, i) => {
-          const p = cluster[side][i];
+      for (const side of ['blue', 'red']) moveLaneSide(side, progress, minute);
+      const blue = routePoint(lanePaths.blue[fightLane], progress),
+        red = routePoint(lanePaths.red[fightLane], progress),
+        dx = red[0] - blue[0],
+        dy = red[1] - blue[1],
+        distance = Math.hypot(dx, dy);
+      if (distance < 22) {
+        const center = [(blue[0] + red[0]) / 2, (blue[1] + red[1]) / 2],
+          perpendicular = [
+            -dy / Math.max(distance, 0.01),
+            dx / Math.max(distance, 0.01),
+          ];
+        for (const side of ['blue', 'red']) {
+          if (retreatSide === side && minute < 15) continue;
+          const direction = side === 'blue' ? -1 : 1,
+            mark = units.get(`unit-${side}-${fightLane}`);
+          if (mark) mark.dataset.state = 'attacking';
           move(
             side,
-            lane,
-            50 + p[0] + Math.sin(minute + i) * 0.6,
-            50 + p[1] + Math.cos(minute + i) * 0.6,
+            fightLane,
+            center[0] + perpendicular[0] * direction * 1.7,
+            center[1] + perpendicular[1] * direction * 1.7,
           );
-        });
+        }
+      }
+      if (gankSide) {
+        const target = gankSide === 'blue' ? blue : red;
+        move(gankSide, 'Selva', target[0], target[1]);
+      }
     } else if (mapMode === 'push') {
-      const spread = 0.72 + (minute - 27) * 0.07;
+      const spread = Math.min(1, 0.72 + (minute - 27) * 0.09);
       for (const side of ['blue', 'red']) {
         const advancing = side === pushSide,
           t = Math.max(
@@ -706,6 +911,30 @@ function simulateMatch() {
     11: () => {
       mapMode = 'lane';
       publish(11, 'Depois do objetivo, os campeões voltam a avançar pelas rotas.');
+    },
+    12: () => {
+      mapMode = 'fight';
+      fightLane = 'Meio';
+      const winnerSide = Math.random() < blueChance / 100 ? 'blue' : 'red';
+      retreatSide = winnerSide === 'blue' ? 'red' : 'blue';
+      gankSide = winnerSide;
+      if (winnerSide === 'blue') blueKills++;
+      else redKills++;
+      document.querySelector('#blue-kills').textContent = `${blueKills} abates`;
+      document.querySelector('#red-kills').textContent = `${redKills} abates`;
+      publish(
+        12,
+        `As equipes se encontram no Meio; ${winnerSide === 'blue' ? 'sua equipe' : 'o adversário'} vence a troca, e o campeão ferido recua pela rota.`,
+      );
+    },
+    15: () => {
+      mapMode = 'lane';
+      retreatSide = null;
+      for (const side of ['blue', 'red']) {
+        const marker = units.get(`unit-${side}-Meio`);
+        if (marker) marker.dataset.state = 'lane';
+      }
+      publish(15, 'Com a vida recuperada, o campeão retorna gradualmente para o Meio.');
     },
     14: () => {
       const side = Math.random() < blueChance / 100 ? 'blue' : 'red',
@@ -817,12 +1046,19 @@ function simulateMatch() {
       mapMode = 'push';
       tickMap(30);
       document.querySelector('#sim-finish').innerHTML =
-        `<div class="sim-finish">${winner} venceu a partida!<small>Partida simulada em 30 minutos · macro inspirada em dados profissionais; resultado aleatório.</small></div>`;
+        `<div class="sim-finish">${winner} venceu a partida!<small>Partida simulada em 30 minutos · desfecho definido pelo modelo e por sorte.</small></div>`;
       publish(30, `Fim de jogo: ${winner} destruiu o Nexus!`, 'result-event');
       button.disabled = false;
       button.textContent = 'Simular novamente';
       clearInterval(simulationInterval);
       simulationInterval = null;
+      const finishedMotion = simulationMotionInterval;
+      setTimeout(() => {
+        if (simulationMotionInterval === finishedMotion) {
+          clearInterval(simulationMotionInterval);
+          simulationMotionInterval = null;
+        }
+      }, 2600);
     },
   };
   let minute = 0;
@@ -839,7 +1075,7 @@ function simulateMatch() {
       clearInterval(simulationInterval);
       simulationInterval = null;
     }
-  }, 950);
+  }, 1350);
 }
 let toastTimer;
 function notify(t) {
@@ -859,6 +1095,18 @@ document.querySelector('#add-ally').onclick = () => addToTeam('ally');
 document.querySelector('#add-enemy').onclick = () => addToTeam('enemy');
 document.querySelector('#simulate').onclick = simulateMatch;
 document.querySelector('#picker-search').addEventListener('input', renderPickerResults);
+document.querySelector('#quiz-answer').addEventListener('input', renderQuizSuggestions);
+document.querySelector('#quiz-answer').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    submitQuizAnswer();
+  }
+});
+document.querySelector('#quiz-submit').addEventListener('click', submitQuizAnswer);
+document.querySelector('#quiz-next').addEventListener('click', () => {
+  document.querySelector('#quiz-answer').disabled = false;
+  startQuizChallenge();
+});
 document.querySelectorAll('.nav button').forEach(
   (b) =>
     (b.onclick = () => {
@@ -866,15 +1114,10 @@ document.querySelectorAll('.nav button').forEach(
         .querySelectorAll('.nav button')
         .forEach((x) => x.classList.remove('active'));
       b.classList.add('active');
-      if (b.dataset.view === 'builder') {
-        document
-          .querySelector('#builder')
-          .scrollIntoView({ behavior: 'smooth', block: 'center' });
-      } else {
-        document
-          .querySelector('#guide')
-          .scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      document.querySelector(`#${b.dataset.view}`).scrollIntoView({
+        behavior: 'smooth',
+        block: b.dataset.view === 'guide' ? 'start' : 'center',
+      });
     }),
 );
 renderRoles();

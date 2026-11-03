@@ -16,7 +16,8 @@
         </div>
         <nav class="nav">
           <button class="active" data-view="guide">Campeões</button
-          ><button data-view="builder">Composições</button>
+          ><button data-view="builder">Composições</button
+          ><button data-view="quiz">Adivinhe o Campeão</button>
         </nav>
         <div class="topright">UM GUIA FEITO PELA COMUNIDADE</div>
       </header>
@@ -108,6 +109,64 @@
           </div>
           <div class="roles" id="roles"></div>
           <div class="grid" id="grid"></div>
+        </section>
+        <section class="panel champion-quiz" id="quiz">
+          <div class="quiz-heading">
+            <div>
+              <div class="eyebrow">Um ícone, três tentativas</div>
+              <h2>Adivinhe o Campeão</h2>
+              <p>
+                Descubra quem usa esta habilidade. A imagem original vem dos dados
+                oficiais do Data Dragon.
+              </p>
+            </div>
+            <div class="quiz-attempts" id="quiz-attempts" aria-live="polite">
+              3 tentativas
+            </div>
+          </div>
+          <div class="quiz-layout">
+            <div class="quiz-art-wrap">
+              <div class="quiz-art-frame">
+                <img id="quiz-skill" alt="Imagem de uma habilidade de campeão" />
+              </div>
+              <div class="quiz-skill-label" id="quiz-skill-label">
+                Habilidade misteriosa
+              </div>
+              <div class="quiz-reveal" id="quiz-reveal" aria-live="polite">
+                Imagem oculta · 0 de 3 pistas reveladas
+              </div>
+            </div>
+            <div class="quiz-controls">
+              <p id="quiz-message" role="status" aria-live="polite">
+                Digite um nome ou escolha uma sugestão.
+              </p>
+              <label class="quiz-search" for="quiz-answer">Qual campeão é?</label>
+              <div class="quiz-input-wrap">
+                <input
+                  id="quiz-answer"
+                  type="search"
+                  placeholder="Buscar campeão..."
+                  autocomplete="off"
+                  aria-autocomplete="list"
+                  aria-controls="quiz-suggestions"
+                />
+                <div
+                  class="quiz-suggestions"
+                  id="quiz-suggestions"
+                  role="listbox"
+                ></div>
+              </div>
+              <div class="quiz-actions">
+                <button id="quiz-submit" type="button">Enviar resposta</button
+                ><button id="quiz-next" type="button" hidden>Próximo desafio</button>
+              </div>
+              <div
+                class="quiz-guesses"
+                id="quiz-guesses"
+                aria-label="Respostas já tentadas"
+              ></div>
+            </div>
+          </div>
         </section>
       </main>
       <footer class="footer">
