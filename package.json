@@ -7,11 +7,14 @@
     "node": ">=20"
   },
   "scripts": {
+    "build": "node --check backend/server.js && node --check frontend/app.js",
     "start": "node backend/server.js",
     "format": "prettier --write frontend/index.html frontend/styles.css frontend/config.js frontend/app.js backend/server.js package.json README.md render.yaml vercel.json .prettierrc.json",
     "format:check": "prettier --check frontend/index.html frontend/styles.css frontend/config.js frontend/app.js backend/server.js package.json README.md render.yaml vercel.json .prettierrc.json"
   },
   "dependencies": {
+    "@neon/config": "^1.10.0",
+    "@neon/env": "^1.6.8",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",

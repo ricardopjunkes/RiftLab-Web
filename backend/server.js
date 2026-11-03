@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import { randomBytes } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -7,6 +7,8 @@ import express from 'express';
 import cors from 'cors';
 import { rateLimit } from 'express-rate-limit';
 import pg from 'pg';
+
+dotenv.config({ path: ['.env.local', '.env'] });
 
 const { Pool } = pg;
 const PORT = Number(process.env.PORT || 3000);
