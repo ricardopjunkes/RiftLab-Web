@@ -3,13 +3,22 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20" },
-  "scripts": { "start": "node backend/server.js" },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node backend/server.js",
+    "format": "prettier --write frontend/index.html frontend/styles.css frontend/config.js frontend/app.js backend/server.js package.json README.md render.yaml vercel.json .prettierrc.json",
+    "format:check": "prettier --check frontend/index.html frontend/styles.css frontend/config.js frontend/app.js backend/server.js package.json README.md render.yaml vercel.json .prettierrc.json"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.0",
     "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "prettier": "3.9.10"
   }
 }

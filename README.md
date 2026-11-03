@@ -5,7 +5,9 @@ Projeto de portfólio para montar composições de League of Legends, consultar 
 ## Tecnologias
 
 - **Frontend:** HTML, CSS e JavaScript puro (`frontend/`). Não usa TypeScript nem framework.
-- **API:** Node.js + Express (`backend/server.js`).
+- **API:** Node.js + Express (ackend/server.js).
+- **Estilo:** Prettier com largura de linha de 88 caracteres (
+  pm run format).
 - **Banco:** PostgreSQL no Neon. A API cria a tabela ao iniciar usando `backend/schema.sql`.
 - **Deploy sugerido:** Vercel para o frontend, Render para a API e Neon para o PostgreSQL.
 
@@ -85,4 +87,3 @@ Depois que a API estiver no ar, abra `frontend/config.js`, defina `window.RIFTLA
 - Taxas de confronto não são extraídas do OP.GG; a página abre o OP.GG para consulta manual.
 - A simulação é recreativa e probabilística, não reproduz partidas profissionais reais.
 - A API precisa estar acessível pela internet para salvar e abrir links compartilhados.
-
