@@ -294,7 +294,34 @@ function serializeTeam(team) {
     team[lane] ? [{ lane, championId: team[lane].id }] : [],
   );
 }
-function saveLocalComposition() {
+function requestCompositionName(defaultName, title) {
+  const dialog = document.querySelector('#composition-name-dialog');
+  const input = document.querySelector('#composition-name-input');
+  document.querySelector('#composition-name-title').textContent = title;
+  input.value = defaultName;
+  return new Promise((resolve) => {
+    dialog.addEventListener(
+      'close',
+      () => resolve(dialog.returnValue === 'save' ? input.value : null),
+      { once: true },
+    );
+    dialog.showModal();
+    input.focus();
+    input.select();
+  });
+}
+function confirmCompositionDelete(name) {
+  const dialog = document.querySelector('#composition-confirm-dialog');
+  document.querySelector('#composition-confirm-message').textContent =
+    `A composição “${name}” será removida deste navegador.`;
+  return new Promise((resolve) => {
+    dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), {
+      once: true,
+    });
+    dialog.showModal();
+  });
+}
+async function saveLocalComposition() {
   const hasPicks =
     serializeTeam(teams.ally).length || serializeTeam(teams.enemy).length;
   if (!hasPicks) {
@@ -305,7 +332,10 @@ function saveLocalComposition() {
   const existing = readSavedCompositions().find(
     (item) => item.id === editingCompositionId,
   );
-  const name = prompt('Nome da composição:', existing?.name || 'Minha composição');
+  const name = await requestCompositionName(
+    existing?.name || 'Minha composição',
+    existing ? 'Atualizar composição' : 'Salvar composição',
+  );
   if (name === null) return;
   const cleanName = name.trim();
   if (!cleanName) {
@@ -340,18 +370,21 @@ function createCompositionId() {
     `${Date.now()}-${Math.random().toString(36).slice(2)}`
   );
 }
-function handleCompositionHistory(action, id) {
+async function handleCompositionHistory(action, id) {
   const saved = readSavedCompositions();
   const item = saved.find((entry) => entry.id === id);
   if (!item) return;
   if (action === 'delete') {
-    if (!confirm(`Excluir “${item.name}” deste navegador?`)) return;
+    if (!(await confirmCompositionDelete(item.name))) return;
     writeSavedCompositions(saved.filter((entry) => entry.id !== id));
     if (editingCompositionId === id) resetEditingComposition();
     return;
   }
   if (action === 'duplicate') {
-    const name = prompt('Nome da cópia:', `${item.name} (cópia)`);
+    const name = await requestCompositionName(
+      `${item.name} (cópia)`,
+      'Duplicar composição',
+    );
     if (name === null || !name.trim()) return;
     const copy = {
       ...item,
@@ -408,7 +441,7 @@ function scoreTeamComposition(team) {
   const magicShare = magical / picks.length;
   const balance =
     physical && magical
-      ? clampScore(82 + Math.max(0, 18 - Math.abs(0.5 - magicShare) * 36))
+      ? clampScore(40 + 60 * (1 - Math.abs(0.5 - magicShare) / 0.5))
       : 48;
   const frontliners = picks.filter(
     (champion) =>
@@ -422,10 +455,6 @@ function scoreTeamComposition(team) {
   const magicClasses = picks.filter((champion) =>
     champion.tags.includes('Mage'),
   ).length;
-  const estimatedDamage = picks.map((champion) => ({
-    physical: champion.info.attack,
-    magic: champion.info.magic,
-  }));
   return {
     picks,
     physical,
@@ -436,7 +465,6 @@ function scoreTeamComposition(team) {
     supports,
     engageProxy,
     magicClasses,
-    estimatedDamage,
   };
 }
 function kitSignals(detail) {
@@ -457,7 +485,7 @@ function kitSignals(detail) {
       descriptions,
     ),
     protect:
-      /escud|cura|curar|proteg|reduz.*dano|shield|heal|protect|damage reduction/.test(
+      /escud|proteg|reduz.{0,30}dano|shield|protect|damage reduction|cura.{0,30}aliad|aliad.{0,30}cura|heal.{0,30}ally|ally.{0,30}heal/.test(
         descriptions,
       ),
     area: /inimigos? (pr[oó]ximos|na [aá]rea|atingidos)|todos os inimigos|em [aá]rea|nearby enemies|all enemies|area of effect/.test(
@@ -478,14 +506,18 @@ async function analyzeCompositionTeam(team) {
   const area = detected('area');
   const dimensions = {
     'Equilíbrio de dano': base.balance,
-    'Linha de frente': clampScore(base.frontliners * 28 + (base.frontliners ? 16 : 0)),
-    Iniciação: clampScore(engage * 30 + Math.min(base.engageProxy, 2) * 12 + 10),
-    'Controle de grupo': clampScore(
-      cc * 27 + Math.min(base.engageProxy + base.magicClasses, 2) * 10 + 8,
+    'Linha de frente': clampScore(base.frontliners * 22 + (base.frontliners ? 15 : 0)),
+    Iniciação: clampScore(
+      Math.min(engage, 3) * 18 + Math.min(base.engageProxy, 2) * 10 + 8,
     ),
-    Proteção: clampScore(protect * 32 + base.supports * 13 + 8),
+    'Controle de grupo': clampScore(
+      Math.min(cc, 3) * 16 + Math.min(base.engageProxy + base.magicClasses, 2) * 8 + 8,
+    ),
+    Proteção: clampScore(Math.min(protect, 2) * 20 + base.supports * 8 + 8),
     'Luta em equipe': clampScore(
-      area * 22 + (base.magicClasses + base.supports + base.frontliners) * 9 + 10,
+      Math.min(area, 3) * 14 +
+        Math.min(base.magicClasses + base.supports + base.frontliners, 5) * 5 +
+        8,
     ),
   };
   const score = clampScore(
@@ -503,7 +535,7 @@ async function analyzeCompositionTeam(team) {
     detailsAvailable: details.filter(Boolean).length,
   };
 }
-function renderTeamAnalysis(team, side, result) {
+function renderTeamAnalysis(_team, side, result) {
   const title = side === 'ally' ? 'Sua equipe · Azul' : 'Adversário · Vermelho';
   const strong = Object.entries(result.dimensions)
     .filter(([, value]) => value >= 70)
@@ -568,7 +600,28 @@ async function renderCompositionAnalysis() {
       ? `${dimension}: ${difference > 0 ? 'Azul' : 'Vermelho'} tem mais ferramentas no modelo.`
       : `${dimension}: perfil semelhante.`;
   });
-  container.innerHTML = `<div class="synergy-scores">${renderTeamAnalysis(teams.ally, 'ally', blue)}${renderTeamAnalysis(teams.enemy, 'enemy', red)}</div><section class="composition-comparison"><h4>Comparação do draft</h4><p><strong>Sinergia estimada:</strong> Azul ${blue.score}/100 · Vermelho ${red.score}/100. A diferença mede apenas os critérios abaixo; não prevê o vencedor.</p><ul>${comparison.map((line) => `<li>${line}</li>`).join('')}</ul></section><p class="model-note">Como o modelo funciona: seis dimensões determinísticas usam os atributos Ataque/Magia/Defesa, classes do catálogo e sinais encontrados nas descrições oficiais das habilidades do patch ${patchVersion}. Pesos e limites são regras heurísticas do RiftLab, não estatísticas de partidas; combinações táticas específicas e vantagem real em confrontos não são inferidas.</p>`;
+  const matchupNotes = [];
+  if (red.magical >= 4)
+    matchupNotes.push(
+      `Vermelho concentra fontes de dano mágico estimadas (${red.magical}/5); Azul tem ${blue.frontliners} perfis de linha de frente por classe/atributo.`,
+    );
+  if (blue.magical >= 4)
+    matchupNotes.push(
+      `Azul concentra fontes de dano mágico estimadas (${blue.magical}/5); Vermelho tem ${red.frontliners} perfis de linha de frente por classe/atributo.`,
+    );
+  if (red.frontliners >= 3 && blue.magicClasses === 0)
+    matchupNotes.push(
+      'Contra uma linha de frente numerosa do Vermelho, Azul não tem campeões da classe Mago; considere adicionar dano mágico dedicado.',
+    );
+  if (blue.frontliners >= 3 && red.magicClasses === 0)
+    matchupNotes.push(
+      'Contra uma linha de frente numerosa do Azul, Vermelho não tem campeões da classe Mago; considere adicionar dano mágico dedicado.',
+    );
+  if (!matchupNotes.length)
+    matchupNotes.push(
+      'As equipes não apresentam concentração extrema de classes ou fontes de dano neste modelo.',
+    );
+  container.innerHTML = `<div class="synergy-scores">${renderTeamAnalysis(teams.ally, 'ally', blue)}${renderTeamAnalysis(teams.enemy, 'enemy', red)}</div><section class="composition-comparison"><h4>Comparação do draft</h4><p><strong>Sinergia estimada:</strong> Azul ${blue.score}/100 · Vermelho ${red.score}/100. A diferença mede apenas os critérios abaixo; não prevê o vencedor.</p><ul>${comparison.map((line) => `<li>${line}</li>`).join('')}</ul><h4>Cobertura contra a composição adversária</h4><ul>${matchupNotes.map((line) => `<li>${line}</li>`).join('')}</ul><p>O atributo Defesa não separa armadura e resistência mágica; por isso, a leitura de dano não garante que a equipe aguente o tipo de dano adversário.</p></section><p class="model-note">Como o modelo funciona: seis dimensões determinísticas usam os atributos Ataque/Magia/Defesa, classes do catálogo e sinais encontrados nas descrições oficiais das habilidades do patch ${patchVersion}. Pesos e limites são regras heurísticas do RiftLab, não estatísticas de partidas; combinações táticas específicas e vantagem real em confrontos não são inferidas.</p>`;
 }
 let pickerTarget = null;
 function openPicker(side, lane) {

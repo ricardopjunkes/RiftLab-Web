@@ -224,6 +224,27 @@
         </div>
       </div>
     </dialog>
+    <dialog id="composition-name-dialog" class="composition-dialog">
+      <form method="dialog" id="composition-name-form">
+        <h2 id="composition-name-title">Salvar composição</h2>
+        <label for="composition-name-input">Nome</label>
+        <input id="composition-name-input" maxlength="60" required />
+        <div class="composition-dialog-actions">
+          <button value="cancel" formnovalidate>Cancelar</button>
+          <button class="primary" value="save">Salvar</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="composition-confirm-dialog" class="composition-dialog">
+      <form method="dialog">
+        <h2>Excluir composição?</h2>
+        <p id="composition-confirm-message"></p>
+        <div class="composition-dialog-actions">
+          <button value="cancel" formnovalidate>Cancelar</button>
+          <button class="danger" value="confirm">Excluir</button>
+        </div>
+      </form>
+    </dialog>
     <div class="toast" id="toast"></div>
     <script src="./config.js"></script>
     <script src="./app.js"></script>

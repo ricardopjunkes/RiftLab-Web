@@ -894,6 +894,60 @@ dialog::backdrop {
   color: var(--muted);
   font-size: 11px;
 }
+.composition-dialog {
+  width: min(430px, calc(100% - 28px));
+  padding: 22px;
+}
+.composition-dialog h2 {
+  margin: 0 0 18px;
+  font: 600 20px 'Space Grotesk';
+}
+.composition-dialog label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.composition-dialog input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  outline: 0;
+  background: #111615;
+  color: var(--text);
+}
+.composition-dialog input:focus {
+  border-color: #7d9e50;
+}
+.composition-dialog p {
+  color: var(--muted);
+  line-height: 1.5;
+}
+.composition-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 18px;
+}
+.composition-dialog-actions button {
+  min-height: 40px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel2);
+  color: var(--text);
+}
+.composition-dialog-actions button.primary {
+  border-color: #586c3b;
+  background: #293321;
+  color: var(--lime);
+}
+.composition-dialog-actions button.danger {
+  border-color: #754743;
+  color: #ffaaa2;
+}
 .note {
   border-left: 2px solid var(--gold);
   padding-left: 10px;
