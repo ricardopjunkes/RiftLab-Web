@@ -78,7 +78,6 @@ async function loadChampions() {
     renderGrid();
     renderTeam();
     if (document.querySelector('#picker-dialog').open) renderPickerResults();
-    startQuizChallenge();
     await loadSharedComposition();
   } catch (e) {
     document.querySelector('.patch').innerHTML =
@@ -112,156 +111,6 @@ function normalizeChampionName(value) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]/g, '');
-}
-let quizChallenge = null,
-  quizAttempts = 3,
-  quizFinished = false,
-  quizLastChampion = null,
-  quizSelectedId = null,
-  quizGuesses = [];
-async function startQuizChallenge() {
-  const message = document.querySelector('#quiz-message');
-  if (!champions.length || !message) return;
-  const pool = champions.filter((champion) => champion.id !== quizLastChampion);
-  const champion = pool[Math.floor(Math.random() * pool.length)] || champions[0];
-  message.textContent = 'Preparando uma habilidade oficial...';
-  document.querySelector('#quiz-submit').disabled = true;
-  try {
-    const detail = await getChampionDetail(champion.id);
-    const spells = detail.spells.filter((spell) => spell.image?.full);
-    if (!spells.length)
-      throw new Error('Este campeão não tem habilidades disponíveis.');
-    const spell = spells[Math.floor(Math.random() * spells.length)];
-    quizChallenge = { champion, spell, spellIndex: detail.spells.indexOf(spell) };
-    quizLastChampion = champion.id;
-    quizAttempts = 3;
-    quizFinished = false;
-    quizSelectedId = null;
-    quizGuesses = [];
-    const image = document.querySelector('#quiz-skill');
-    image.src = `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/spell/${spell.image.full}`;
-    image.alt = 'Ícone distorcido de uma habilidade';
-    const rotations = ['90deg', '180deg', '270deg'];
-    const initialRotation = rotations[Math.floor(Math.random() * rotations.length)];
-    image.style.setProperty('--quiz-rotation', initialRotation);
-    image.style.setProperty('--quiz-current-rotation', initialRotation);
-    image.style.setProperty('--quiz-mirror', Math.random() < 0.5 ? '-1' : '1');
-    image.dataset.level = '0';
-    document.querySelector('#quiz-skill-label').textContent = 'Habilidade misteriosa';
-    document.querySelector('#quiz-reveal').textContent =
-      'Imagem oculta · 0 de 3 pistas reveladas';
-    document.querySelector('#quiz-answer').value = '';
-    document.querySelector('#quiz-answer').disabled = false;
-    document.querySelector('#quiz-guesses').replaceChildren();
-    document.querySelector('#quiz-next').hidden = true;
-    document.querySelector('#quiz-submit').disabled = false;
-    updateQuizAttempts();
-    message.textContent = 'Digite um nome ou escolha uma sugestão.';
-  } catch (error) {
-    message.textContent = 'Não foi possível preparar o desafio. Tente novamente.';
-    document.querySelector('#quiz-next').hidden = false;
-    document.querySelector('#quiz-submit').disabled = true;
-  }
-}
-function updateQuizAttempts() {
-  document.querySelector('#quiz-attempts').textContent =
-    `${quizAttempts} ${quizAttempts === 1 ? 'tentativa' : 'tentativas'}`;
-}
-function renderQuizSuggestions() {
-  const input = document.querySelector('#quiz-answer');
-  const query = normalizeChampionName(input.value);
-  const container = document.querySelector('#quiz-suggestions');
-  quizSelectedId = null;
-  if (!query || quizFinished) {
-    container.replaceChildren();
-    container.hidden = true;
-    return;
-  }
-  const matches = champions
-    .filter((champion) => normalizeChampionName(champion.name).includes(query))
-    .slice(0, 8);
-  container.innerHTML = matches
-    .map(
-      (champion) =>
-        `<button type="button" role="option" data-quiz-id="${champion.id}"><img src="https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}" alt=""><span>${champion.name}</span></button>`,
-    )
-    .join('');
-  container.hidden = !matches.length;
-  container.querySelectorAll('[data-quiz-id]').forEach((button) => {
-    button.onclick = () => {
-      const champion = champions.find((item) => item.id === button.dataset.quizId);
-      if (!champion) return;
-      input.value = champion.name;
-      quizSelectedId = champion.id;
-      container.replaceChildren();
-      container.hidden = true;
-      input.focus();
-    };
-  });
-}
-function finishQuiz(won) {
-  quizFinished = true;
-  const image = document.querySelector('#quiz-skill');
-  image.dataset.level = '3';
-  image.style.setProperty('--quiz-rotation', '0deg');
-  image.style.setProperty('--quiz-current-rotation', '0deg');
-  image.style.setProperty('--quiz-mirror', '1');
-  image.alt = `Habilidade ${quizChallenge.spell.name} de ${quizChallenge.champion.name}`;
-  document.querySelector('#quiz-skill-label').textContent =
-    `${quizChallenge.spell.name} · ${['Q', 'W', 'E', 'R'][quizChallenge.spellIndex] || 'Habilidade'}`;
-  document.querySelector('#quiz-reveal').textContent =
-    `Resposta: ${quizChallenge.champion.name}`;
-  document.querySelector('#quiz-message').textContent = won
-    ? `Acertou! Era ${quizChallenge.champion.name}.`
-    : `As tentativas acabaram. O campeão era ${quizChallenge.champion.name}.`;
-  document.querySelector('#quiz-answer').disabled = true;
-  document.querySelector('#quiz-submit').disabled = true;
-  document.querySelector('#quiz-next').hidden = false;
-  document.querySelector('#quiz-suggestions').hidden = true;
-}
-function submitQuizAnswer() {
-  if (!quizChallenge || quizFinished) return;
-  const value = document.querySelector('#quiz-answer').value.trim();
-  const normalized = normalizeChampionName(value);
-  const guess =
-    champions.find((champion) => champion.id === quizSelectedId) ||
-    champions.find((champion) => normalizeChampionName(champion.name) === normalized);
-  const message = document.querySelector('#quiz-message');
-  if (!value || !guess) {
-    message.textContent = 'Escolha um campeão válido na lista de sugestões.';
-    return;
-  }
-  if (quizGuesses.includes(guess.id)) {
-    message.textContent = `${guess.name} já foi tentado. Escolha outro campeão.`;
-    return;
-  }
-  quizGuesses.push(guess.id);
-  const chip = document.createElement('span');
-  chip.textContent = guess.name;
-  document.querySelector('#quiz-guesses').append(chip);
-  document.querySelector('#quiz-answer').value = '';
-  renderQuizSuggestions();
-  if (guess.id === quizChallenge.champion.id) {
-    finishQuiz(true);
-    return;
-  }
-  quizAttempts--;
-  updateQuizAttempts();
-  document.querySelector('#quiz-skill').dataset.level = String(3 - quizAttempts);
-  const rotation = Number.parseFloat(
-    document.querySelector('#quiz-skill').style.getPropertyValue('--quiz-rotation'),
-  );
-  document
-    .querySelector('#quiz-skill')
-    .style.setProperty(
-      '--quiz-current-rotation',
-      `${rotation * (quizAttempts === 2 ? 0.55 : 0.2)}deg`,
-    );
-  document.querySelector('#quiz-reveal').textContent =
-    `${3 - quizAttempts} de 3 pistas reveladas`;
-  if (!quizAttempts) finishQuiz(false);
-  else
-    message.textContent = `Ainda não! A habilidade ficou mais nítida. ${quizAttempts === 1 ? 'Resta 1 tentativa.' : `Restam ${quizAttempts} tentativas.`}`;
 }
 function renderRoles() {
   document.querySelector('#roles').innerHTML = roles
@@ -1095,18 +944,6 @@ document.querySelector('#add-ally').onclick = () => addToTeam('ally');
 document.querySelector('#add-enemy').onclick = () => addToTeam('enemy');
 document.querySelector('#simulate').onclick = simulateMatch;
 document.querySelector('#picker-search').addEventListener('input', renderPickerResults);
-document.querySelector('#quiz-answer').addEventListener('input', renderQuizSuggestions);
-document.querySelector('#quiz-answer').addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    submitQuizAnswer();
-  }
-});
-document.querySelector('#quiz-submit').addEventListener('click', submitQuizAnswer);
-document.querySelector('#quiz-next').addEventListener('click', () => {
-  document.querySelector('#quiz-answer').disabled = false;
-  startQuizChallenge();
-});
 document.querySelectorAll('.nav button').forEach(
   (b) =>
     (b.onclick = () => {

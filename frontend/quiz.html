@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#101414" />
+    <title>Adivinhe o Campeão — RiftLab</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand" href="./index.html" aria-label="RiftLab — página inicial">
+          <span class="brandmark">✦</span>
+          <span>rift<em>lab</em></span>
+        </a>
+        <nav class="nav" aria-label="Navegação principal">
+          <a href="./index.html#guide">Campeões</a>
+          <a href="./index.html#builder">Composições</a>
+          <a class="active" href="./quiz.html" aria-current="page"
+            >Adivinhe o Campeão</a
+          >
+        </nav>
+        <div class="topright">DESAFIO DO RIFT</div>
+      </header>
+      <main class="quiz-page-content">
+        <a class="quiz-back" href="./index.html">← Voltar para o RiftLab</a>
+        <section
+          class="panel champion-quiz"
+          id="quiz-card"
+          aria-labelledby="quiz-title"
+        >
+          <div class="quiz-heading">
+            <div>
+              <div class="eyebrow">Um ícone, cinco tentativas</div>
+              <h1 id="quiz-title">Adivinhe o Campeão</h1>
+              <p>
+                Descubra quem usa esta habilidade. A imagem original vem dos dados
+                oficiais do Data Dragon.
+              </p>
+            </div>
+            <div class="quiz-status">
+              <div class="patch"><i></i>Carregando dados oficiais</div>
+              <div class="quiz-attempts" id="quiz-attempts" aria-live="polite">
+                5/5 tentativas
+              </div>
+            </div>
+          </div>
+          <div class="quiz-progress" aria-label="Progresso de revelação da imagem">
+            <div
+              id="quiz-progress-fill"
+              role="progressbar"
+              aria-label="Detalhes revelados"
+              aria-valuemin="0"
+              aria-valuemax="5"
+              aria-valuenow="0"
+            ></div>
+          </div>
+          <div class="quiz-layout">
+            <div class="quiz-art-wrap">
+              <div class="quiz-art-frame">
+                <img
+                  id="quiz-skill"
+                  alt="Imagem distorcida de uma habilidade de campeão"
+                />
+              </div>
+              <div class="quiz-skill-label" id="quiz-skill-label">
+                Habilidade misteriosa
+              </div>
+              <div class="quiz-reveal" id="quiz-reveal" aria-live="polite">
+                Imagem oculta · 0 de 5 pistas reveladas
+              </div>
+            </div>
+            <div class="quiz-controls">
+              <p id="quiz-message" role="status" aria-live="polite">
+                Digite um nome ou escolha uma sugestão.
+              </p>
+              <label class="quiz-search" for="quiz-answer">Qual campeão é?</label>
+              <div class="quiz-input-wrap">
+                <input
+                  id="quiz-answer"
+                  type="search"
+                  placeholder="Buscar campeão..."
+                  autocomplete="off"
+                  aria-autocomplete="list"
+                  aria-controls="quiz-suggestions"
+                />
+                <div
+                  class="quiz-suggestions"
+                  id="quiz-suggestions"
+                  role="listbox"
+                  hidden
+                ></div>
+              </div>
+              <div class="quiz-actions">
+                <button id="quiz-submit" type="button" disabled>Enviar resposta</button>
+                <button id="quiz-next" type="button" hidden>Próximo desafio</button>
+              </div>
+              <div
+                class="quiz-guesses"
+                id="quiz-guesses"
+                aria-label="Respostas já tentadas"
+              ></div>
+              <div
+                class="quiz-result-name"
+                id="quiz-result-name"
+                aria-live="polite"
+              ></div>
+            </div>
+          </div>
+        </section>
+      </main>
+      <footer class="footer">
+        <span><strong>riftlab</strong> · desafio de campeões</span>
+        <span>Não afiliado à Riot Games.</span>
+      </footer>
+    </div>
+    <script src="./quiz.js"></script>
+  </body>
+</html>
