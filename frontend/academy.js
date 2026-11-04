@@ -184,6 +184,14 @@ function answerChallenge(button, challenge) {
   document.querySelector('#academy-next').hidden = false;
 }
 document.querySelector('#academy-next').addEventListener('click', renderChallenge);
+document.querySelector('#academy-reset').addEventListener('click', () => {
+  if (!window.confirm('Zerar pontos, acertos e sequência da Academy neste navegador?'))
+    return;
+  academy.stats = { points: 0, correct: 0, streak: 0, best: 0 };
+  localStorage.removeItem(ACADEMY_KEY);
+  renderAcademyStats();
+  document.querySelector('#academy-feedback').textContent = 'Pontuação zerada.';
+});
 renderAcademyStats();
 getCatalog().catch(() => {
   document.querySelector('#academy-question').textContent =
