@@ -77,6 +77,11 @@ async function loadChampions() {
       `<i></i>Dados oficiais · patch ${patchVersion}`;
     renderGrid();
     renderTeam();
+    window.dispatchEvent(
+      new CustomEvent('riftlab:champions-ready', {
+        detail: { patchVersion, count: champions.length },
+      }),
+    );
     if (document.querySelector('#picker-dialog').open) renderPickerResults();
     await loadSharedComposition();
   } catch (e) {

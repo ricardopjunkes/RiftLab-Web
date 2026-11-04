@@ -7,10 +7,10 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "node --check backend/server.js && node --check frontend/app.js && node --check frontend/quiz.js && node --check frontend/academy.js",
+    "build": "node --check backend/server.js && node --check frontend/app.js && node --check frontend/draft-explorer.js && node --check frontend/quiz.js && node --check frontend/academy.js",
     "start": "node backend/server.js",
-    "format": "prettier --write frontend/index.html frontend/quiz.html frontend/academy.html frontend/styles.css frontend/config.js frontend/app.js frontend/quiz.js frontend/academy.js backend/server.js package.json README.md render.yaml vercel.json .prettierrc.json",
-    "format:check": "prettier --check frontend/index.html frontend/quiz.html frontend/academy.html frontend/styles.css frontend/config.js frontend/app.js frontend/quiz.js frontend/academy.js backend/server.js package.json README.md render.yaml vercel.json .prettierrc.json"
+    "format": "prettier --write frontend/index.html frontend/quiz.html frontend/academy.html frontend/styles.css frontend/config.js frontend/app.js frontend/draft-explorer.js frontend/quiz.js frontend/academy.js backend/server.js package.json README.md render.yaml vercel.json .prettierrc.json",
+    "format:check": "prettier --check frontend/index.html frontend/quiz.html frontend/academy.html frontend/styles.css frontend/config.js frontend/app.js frontend/draft-explorer.js frontend/quiz.js frontend/academy.js backend/server.js package.json README.md render.yaml vercel.json .prettierrc.json"
   },
   "dependencies": {
     "@neon/config": "^1.10.0",

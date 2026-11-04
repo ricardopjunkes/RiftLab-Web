@@ -1,6 +1,6 @@
 # RiftLab
 
-Projeto de portfólio para montar composições de League of Legends, consultar os campeões oficiais via Data Dragon, simular partidas e salvar/compartilhar drafts.
+Projeto de portfólio para montar composições de League of Legends, simular um draft competitivo, explorar atributos de matchups, consultar os campeões oficiais via Data Dragon, simular partidas e salvar/compartilhar drafts.
 
 ## Tecnologias
 
@@ -22,6 +22,7 @@ frontend/
   academy.html    desafios da Rift Lab Academy
   styles.css       estilos
   app.js           busca, composição e simulação
+  draft-explorer.js draft de picks/bans e comparação de matchups
   quiz.js          pontuação, sequência e histórico do minigame
   academy.js       desafios e pontuação geral da Academy
   config.js        endereço público da API
@@ -85,6 +86,12 @@ Depois que a API estiver no ar, abra `frontend/config.js`, defina `window.RIFTLA
 ## Compartilhamento e dados
 
 “Salvar e compartilhar composição” grava os IDs dos campeões e as rotas no banco e copia um link com código aleatório. Quem tiver o link consegue abrir a composição. Não há login: não salve informações pessoais no draft. A API limita a criação de links para reduzir spam.
+
+## Draft Simulator e Matchup Explorer
+
+O Draft Simulator organiza os turnos de banimentos e escolhas para os lados azul e vermelho, impede campeões duplicados, permite atribuir picks às cinco rotas e sugere opções por cobertura de rota, classes e diversidade de dano. Ao final, analisa as equipes com o modelo de composição já usado no Rift Lab. As sugestões e análises são heurísticas do projeto, não previsões de partidas.
+
+O Matchup Explorer compara dois campeões por rota usando atributos e descrições de habilidades do Data Dragon do patch atual. Os recortes de início, meio e fim mostram atributos base ou crescimento por nível e contagens simples de termos das habilidades. Eles não representam medições reais de força por fase. O Riot Data Dragon não fornece taxas de vitória de confronto, então a ferramenta não inventa winrates nem afirma qual campeão venceria.
 
 ## Limitações
 

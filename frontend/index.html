@@ -17,6 +17,8 @@
         <nav class="nav">
           <a class="active" href="#guide" data-view="guide">Galeria</a
           ><a href="#builder" data-view="builder">Composições</a
+          ><a href="#draft-simulator" data-view="draft-simulator">Draft Simulator</a
+          ><a href="#matchup-explorer" data-view="matchup-explorer">Matchup Explorer</a
           ><a href="./quiz.html">Adivinhe o Campeão</a
           ><a href="./academy.html">Academy</a>
         </nav>
@@ -104,6 +106,117 @@
             </div>
             <div id="composition-history-list"></div>
           </section>
+        </section>
+        <section class="panel strategy-tool" id="draft-simulator">
+          <div class="gallery-heading">
+            <div>
+              <div class="eyebrow">Estratégia · seleção competitiva</div>
+              <h2>Draft Simulator</h2>
+              <p>
+                Alterne bans e escolhas na ordem de um draft competitivo. Defina a rota
+                de cada escolha para completar as duas equipes.
+              </p>
+            </div>
+            <span class="estimate-badge"
+              >Ordem: 6 bans · 6 escolhas · 4 bans · 4 escolhas</span
+            >
+          </div>
+          <div class="draft-layout">
+            <div class="draft-team blue">
+              <h3>Equipe Azul</h3>
+              <div id="draft-blue-lineup" class="draft-lineup"></div>
+            </div>
+            <div class="draft-control panel">
+              <div class="eyebrow">Turno atual</div>
+              <div id="draft-turn" class="draft-turn" aria-live="polite">
+                Carregando campeões…
+              </div>
+              <label id="draft-position-wrap" for="draft-position"
+                >Rota desta escolha</label
+              >
+              <select id="draft-position" class="select"></select>
+              <button id="draft-action" type="button" disabled>
+                Carregando campeões…
+              </button>
+              <button id="draft-reset" class="clear" type="button">
+                Reiniciar draft
+              </button>
+              <p class="note">
+                Sugestões consideram rota disponível, classes e equilíbrio de atributos
+                da composição. Não representam counters nem previsão de vitória.
+              </p>
+            </div>
+            <div class="draft-team red">
+              <h3>Equipe Vermelha</h3>
+              <div id="draft-red-lineup" class="draft-lineup"></div>
+            </div>
+          </div>
+          <section class="draft-bans-panel">
+            <h3>Campeões banidos</h3>
+            <div id="draft-bans" class="draft-bans"></div>
+          </section>
+          <section class="draft-suggestions-panel">
+            <h3>Sugestões para a próxima escolha</h3>
+            <p id="draft-suggestions-note" class="note">
+              Sugestões serão exibidas nos turnos de escolha.
+            </p>
+            <div id="draft-suggestions" class="draft-suggestions"></div>
+          </section>
+          <section id="draft-analysis" class="draft-analysis" aria-live="polite">
+            <p class="note">
+              Finalize as dez escolhas para ver a análise das duas composições.
+            </p>
+          </section>
+        </section>
+        <section class="panel strategy-tool matchup-explorer" id="matchup-explorer">
+          <div class="gallery-heading">
+            <div>
+              <div class="eyebrow">Campeões · comparação transparente</div>
+              <h2>Matchup Explorer</h2>
+              <p>
+                Compare atributos oficiais e sinais encontrados nas habilidades para
+                entender o que pode pesar em cada etapa.
+              </p>
+            </div>
+            <span class="estimate-badge">Sem winrates inventadas</span>
+          </div>
+          <div class="matchup-explorer-controls">
+            <label
+              >Campeão 1<select id="matchup-champion-a" class="select">
+                <option value="">Selecione um campeão</option>
+              </select></label
+            >
+            <label
+              >Campeão 2<select id="matchup-champion-b" class="select">
+                <option value="">Selecione um campeão</option>
+              </select></label
+            >
+            <label
+              >Rota<select id="matchup-lane" class="select">
+                <option>Topo</option>
+                <option>Selva</option>
+                <option>Meio</option>
+                <option>Atirador</option>
+                <option>Suporte</option>
+              </select></label
+            >
+            <button id="matchup-compare" type="button" disabled>
+              Comparar campeões
+            </button>
+          </div>
+          <div id="matchup-results" class="matchup-results" aria-live="polite">
+            <p class="note">
+              Escolha dois campeões para comparar seus atributos, habilidades e
+              indicadores por fase.
+            </p>
+          </div>
+          <p class="model-note">
+            Fonte: atributos, rotas sugeridas e descrições oficiais do Data Dragon no
+            patch atual. Mobilidade, controle e outras ferramentas são identificados por
+            palavras nas descrições, e a leitura por fase é uma heurística do Rift Lab.
+            A dificuldade do confronto e taxas de vitória exigem dados de partidas que
+            esta página não possui.
+          </p>
         </section>
         <section class="panel simulation-panel" id="simulator">
           <div class="sim-heading">
@@ -200,6 +313,21 @@
       /></label>
       <div class="picker-results" id="picker-results"></div>
     </dialog>
+    <dialog id="draft-picker-dialog">
+      <div class="dialog-head">
+        <strong id="draft-picker-title">Escolha um campeão</strong
+        ><button id="draft-picker-close" type="button" aria-label="Fechar">×</button>
+      </div>
+      <label class="picker-search"
+        ><span>⌕</span
+        ><input
+          id="draft-picker-search"
+          type="search"
+          placeholder="Buscar campeão..."
+          autocomplete="off"
+      /></label>
+      <div id="draft-picker-results" class="picker-results"></div>
+    </dialog>
     <dialog id="champion-dialog">
       <div class="dialog-head">
         <strong>Guia do campeão</strong
@@ -250,5 +378,6 @@
     <div class="toast" id="toast"></div>
     <script src="./config.js"></script>
     <script src="./app.js"></script>
+    <script src="./draft-explorer.js"></script>
   </body>
 </html>
