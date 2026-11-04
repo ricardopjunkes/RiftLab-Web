@@ -15,8 +15,8 @@
           rift<em>lab</em>
         </div>
         <nav class="nav">
-          <button class="active" data-view="guide">Campeões</button
-          ><button data-view="builder">Composições</button
+          <a class="active" href="#guide" data-view="guide">Galeria</a
+          ><a href="#builder" data-view="builder">Composições</a
           ><a href="./quiz.html">Adivinhe o Campeão</a>
         </nav>
         <div class="topright">UM GUIA FEITO PELA COMUNIDADE</div>
@@ -64,12 +64,45 @@
               RiftLab não importa os percentuais do OP.GG.
             </p>
           </section>
+          <section class="synergy-panel" id="composition-analysis" aria-live="polite">
+            <div class="synergy-heading">
+              <div>
+                <div class="eyebrow">Leitura do draft</div>
+                <h3>Análise e sinergia das equipes</h3>
+              </div>
+              <span class="estimate-badge"
+                >Estimativa baseada nos dados do campeão</span
+              >
+            </div>
+            <div id="synergy-analysis">
+              <p class="note">
+                Monte ao menos uma equipe para ver sua análise de composição.
+              </p>
+            </div>
+          </section>
           <button class="clear" id="clear">Limpar as duas equipes</button>
           <div class="save-tools">
+            <button
+              class="save-composition-button"
+              id="save-local-composition"
+              type="button"
+            >
+              Salvar composição
+            </button>
             <button class="save-composition-button" id="save-composition" type="button">
               Salvar e compartilhar composição</button
             ><span id="save-status" role="status" aria-live="polite"></span>
           </div>
+          <section class="composition-history" aria-labelledby="history-title">
+            <div class="history-heading">
+              <div>
+                <div class="eyebrow">Neste navegador</div>
+                <h3 id="history-title">Minhas composições</h3>
+              </div>
+              <span id="history-status" role="status" aria-live="polite"></span>
+            </div>
+            <div id="composition-history-list"></div>
+          </section>
         </section>
         <section class="panel simulation-panel" id="simulator">
           <div class="sim-heading">
@@ -95,6 +128,17 @@
           </p>
         </section>
         <section class="panel roster" id="guide">
+          <div class="gallery-heading">
+            <div>
+              <div class="eyebrow">Data Dragon · patch atual</div>
+              <h2>Galeria de campeões</h2>
+              <p>
+                Explore o elenco, filtre por rota, classe ou dificuldade e abra o guia
+                completo.
+              </p>
+            </div>
+            <span class="count" id="champion-count"></span>
+          </div>
           <div class="toolbar">
             <label class="search"
               ><span>⌕</span
@@ -102,6 +146,23 @@
                 id="search"
                 placeholder="Buscar campeão..."
                 autocomplete="off" /></label
+            ><select class="select" id="class-filter" aria-label="Filtrar por classe">
+              <option value="Todas">Todas as classes</option>
+              <option value="Fighter">Lutador</option>
+              <option value="Tank">Tanque</option>
+              <option value="Mage">Mago</option>
+              <option value="Assassin">Assassino</option>
+              <option value="Marksman">Atirador</option>
+              <option value="Support">Suporte</option></select
+            ><select
+              class="select"
+              id="difficulty-filter"
+              aria-label="Filtrar por dificuldade"
+            >
+              <option value="Todas">Todas as dificuldades</option>
+              <option value="easy">Fácil</option>
+              <option value="medium">Intermediária</option>
+              <option value="hard">Difícil</option></select
             ><select class="select" id="sort">
               <option value="az">Nome: A–Z</option>
               <option value="role">Função</option>

@@ -129,14 +129,28 @@ function renderRoles() {
   );
 }
 function renderGrid() {
+  const classFilter = document.querySelector('#class-filter').value;
+  const difficultyFilter = document.querySelector('#difficulty-filter').value;
   let list = champions.filter(
     (c) =>
       (activeRole === 'Todas' || c.roles.includes(activeRole)) &&
+      (classFilter === 'Todas' || c.tags.includes(classFilter)) &&
+      (difficultyFilter === 'Todas' ||
+        (difficultyFilter === 'easy' && c.info.difficulty <= 3) ||
+        (difficultyFilter === 'medium' &&
+          c.info.difficulty >= 4 &&
+          c.info.difficulty <= 6) ||
+        (difficultyFilter === 'hard' && c.info.difficulty >= 7)) &&
       normalizeChampionName(c.name).includes(normalizeChampionName(search.value)),
   );
   if (document.querySelector('#sort').value === 'role')
-    list.sort((a, b) => a.role.localeCompare(b.role) || a.name.localeCompare(b.name));
+    list.sort(
+      (a, b) =>
+        (a.roles[0] || '').localeCompare(b.roles[0] || '') ||
+        a.name.localeCompare(b.name),
+    );
   else list.sort((a, b) => a.name.localeCompare(b.name));
+  document.querySelector('#champion-count').textContent = `${list.length} campeões`;
   grid.innerHTML = list.length
     ? list
         .map(
@@ -170,23 +184,392 @@ function showChampion(id) {
   document.querySelector('#position-select').value = laneMap[id]?.[0] || 'Topo';
   const dialog = document.querySelector('#champion-dialog');
   dialog.showModal();
+  const art = `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.id}_0.jpg`;
   document.querySelector('#detail-content').innerHTML =
-    `<div class="detail-top"><img src="https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}" alt=""><div><span class="eyebrow">${champion.roles.join(' / ')} · ${champion.tags.join(' / ')}</span><h2>${champion.name}</h2><p>${champion.title}</p></div></div><p class="detail-blurb">${champion.blurb}</p><div class="detail-stats"><span>Ataque <b>${champion.info.attack}/10</b></span><span>Defesa <b>${champion.info.defense}/10</b></span><span>Magia <b>${champion.info.magic}/10</b></span><span>Dificuldade <b>${champion.info.difficulty}/10</b></span></div><div class="detail-skills">Carregando habilidades...</div>`;
+    `<section class="guide-hero" style="--guide-art:url('${art}')"><div><span class="eyebrow">${champion.tags.join(' · ')}</span><h2>${champion.name}</h2><p>${champion.title}</p></div></section><div class="guide-facts"><div><span>Rotas RiftLab</span><strong>${champion.roles.join(' · ')}</strong></div><div><span>Classe oficial</span><strong>${champion.tags.join(' · ')}</strong></div><div><span>Dificuldade</span><strong>${difficultyLabel(champion.info.difficulty)} · ${champion.info.difficulty}/10</strong></div></div><div class="detail-stats"><span>Ataque <b>${champion.info.attack}/10</b></span><span>Defesa <b>${champion.info.defense}/10</b></span><span>Magia <b>${champion.info.magic}/10</b></span><span>Dificuldade <b>${champion.info.difficulty}/10</b></span></div><section class="guide-lore"><h3>História</h3><p class="detail-blurb">Carregando história oficial...</p></section><section class="detail-skills">Carregando habilidades oficiais...</section><div class="guide-tips"><section><h3>Pontos fortes e dicas de aliados</h3><ul class="ally-tips"></ul></section><section><h3>Dicas para enfrentar</h3><ul class="enemy-tips"></ul></section></div><section class="guide-matchups"><h3>Confrontos</h3><p>Consulte taxas e tendências de confronto no OP.GG, com a rota selecionada abaixo. Esses dados são externos ao Data Dragon.</p><a id="detail-matchups-link" target="_blank" rel="noopener noreferrer">Ver confrontos no OP.GG ↗</a></section><p class="guide-disclaimer">Rotas sugeridas pelo mapa de funções do RiftLab. Dicas e habilidades fornecidas pelo Data Dragon; não são estatísticas de vitória nem uma lista de counters.</p>`;
+  updateChampionMatchupLink();
   getChampionDetail(champion.id)
     .then((d) => {
-      document.querySelector('.detail-skills').innerHTML =
-        `<h3>Habilidades</h3><div class="skill"><img src="https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/passive/${d.passive.image.full}" alt=""><div><b>${d.passive.name} · Passiva</b><p>${d.passive.description}</p></div></div>${d.spells.map((s, i) => `<div class="skill"><img src="https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/spell/${s.image.full}" alt=""><div><b>${s.name} · ${['Q', 'W', 'E', 'R'][i]}</b><p>${s.description}</p></div></div>`).join('')}`;
+      if (selectedChampion !== champion.id) return;
+      const content = document.querySelector('#detail-content');
+      content.querySelector('.detail-blurb').textContent = d.lore;
+      const skillCards = [
+        { ...d.passive, key: 'Passiva', type: 'passive' },
+        ...d.spells.map((spell, i) => ({
+          ...spell,
+          key: ['Q', 'W', 'E', 'R'][i],
+          type: 'spell',
+        })),
+      ];
+      content.querySelector('.detail-skills').innerHTML =
+        `<h3>Habilidades</h3><div class="skill-grid">${skillCards.map((skill) => `<article class="skill"><img src="https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/${skill.type}/${skill.image.full}" alt="Ícone de ${skill.name}"><div><b>${skill.name} <span>${skill.key}</span></b><p>${skill.description}</p></div></article>`).join('')}</div>`;
+      content.querySelector('.ally-tips').innerHTML = renderTips(
+        d.allytips,
+        'Este campeão não possui dicas de aliados no Data Dragon.',
+      );
+      content.querySelector('.enemy-tips').innerHTML = renderTips(
+        d.enemytips,
+        'Este campeão não possui dicas para adversários no Data Dragon.',
+      );
     })
     .catch(() => {
+      if (selectedChampion !== champion.id) return;
       document.querySelector('.detail-skills').textContent =
         'Não foi possível carregar as habilidades.';
     });
+}
+function difficultyLabel(value) {
+  return value <= 3 ? 'Fácil' : value <= 6 ? 'Intermediária' : 'Difícil';
+}
+function renderTips(tips, emptyMessage) {
+  return tips?.length
+    ? tips.map((tip) => `<li>${tip}</li>`).join('')
+    : `<li>${emptyMessage}</li>`;
+}
+function updateChampionMatchupLink() {
+  const link = document.querySelector('#detail-matchups-link');
+  if (!link || !selectedChampion) return;
+  const lane = document.querySelector('#position-select').value;
+  link.href = `https://op.gg/lol/champions/${opggSlug(selectedChampion)}/counters/${opggPosition(lane)}`;
+  link.textContent = `Ver confrontos de ${lane} no OP.GG ↗`;
 }
 const laneKeys = ['Topo', 'Selva', 'Meio', 'Atirador', 'Suporte'];
 let teams = { ally: {}, enemy: {} },
   selectedChampion = null,
   simulationInterval = null,
   simulationMotionInterval = null;
+const COMPOSITION_STORAGE_KEY = 'riftlab-compositions-v1';
+let editingCompositionId = null;
+function readSavedCompositions() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(COMPOSITION_STORAGE_KEY) || '[]');
+    return Array.isArray(parsed)
+      ? parsed.filter(
+          (item) =>
+            item &&
+            typeof item.id === 'string' &&
+            /^[\w-]{1,100}$/.test(item.id) &&
+            typeof item.name === 'string' &&
+            Array.isArray(item.ally) &&
+            Array.isArray(item.enemy),
+        )
+      : [];
+  } catch {
+    return [];
+  }
+}
+function writeSavedCompositions(items) {
+  try {
+    localStorage.setItem(COMPOSITION_STORAGE_KEY, JSON.stringify(items));
+    document.querySelector('#history-status').textContent = '';
+    renderCompositionHistory();
+    return true;
+  } catch {
+    document.querySelector('#history-status').textContent =
+      'Não foi possível salvar. Verifique o armazenamento do navegador.';
+    return false;
+  }
+}
+function renderCompositionHistory() {
+  const list = document.querySelector('#composition-history-list');
+  if (!list) return;
+  const saved = readSavedCompositions();
+  list.innerHTML = saved.length
+    ? `<div class="history-grid">${saved.map((item) => `<article class="history-card"><div><strong>${escapeHtml(item.name)}</strong><small>Salva em ${new Date(item.updatedAt || item.createdAt).toLocaleDateString('pt-BR')}</small><p>${(item.ally || []).length} picks azuis · ${(item.enemy || []).length} picks vermelhos</p></div><div class="history-actions"><button data-history-action="load" data-history-id="${item.id}">Abrir e editar</button><button data-history-action="duplicate" data-history-id="${item.id}">Duplicar</button><button data-history-action="delete" data-history-id="${item.id}" aria-label="Excluir ${escapeHtml(item.name)}">Excluir</button></div></article>`).join('')}</div>`
+    : '<p class="note">Suas composições salvas neste navegador aparecerão aqui.</p>';
+  list.querySelectorAll('[data-history-action]').forEach((button) => {
+    button.onclick = () =>
+      handleCompositionHistory(button.dataset.historyAction, button.dataset.historyId);
+  });
+}
+function escapeHtml(value) {
+  return String(value).replace(
+    /[&<>"']/g,
+    (char) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char],
+  );
+}
+function serializeTeam(team) {
+  return laneKeys.flatMap((lane) =>
+    team[lane] ? [{ lane, championId: team[lane].id }] : [],
+  );
+}
+function saveLocalComposition() {
+  const hasPicks =
+    serializeTeam(teams.ally).length || serializeTeam(teams.enemy).length;
+  if (!hasPicks) {
+    document.querySelector('#history-status').textContent =
+      'Adicione ao menos um campeão antes de salvar.';
+    return;
+  }
+  const existing = readSavedCompositions().find(
+    (item) => item.id === editingCompositionId,
+  );
+  const name = prompt('Nome da composição:', existing?.name || 'Minha composição');
+  if (name === null) return;
+  const cleanName = name.trim();
+  if (!cleanName) {
+    document.querySelector('#history-status').textContent =
+      'O nome da composição não pode ficar vazio.';
+    return;
+  }
+  const now = new Date().toISOString();
+  const entry = {
+    id: editingCompositionId || createCompositionId(),
+    name: cleanName,
+    ally: serializeTeam(teams.ally),
+    enemy: serializeTeam(teams.enemy),
+    createdAt: existing?.createdAt || now,
+    updatedAt: now,
+  };
+  const saved = readSavedCompositions();
+  const next = existing
+    ? saved.map((item) => (item.id === entry.id ? entry : item))
+    : [entry, ...saved];
+  if (writeSavedCompositions(next)) {
+    editingCompositionId = entry.id;
+    document.querySelector('#save-local-composition').textContent =
+      'Atualizar composição';
+    document.querySelector('#history-status').textContent =
+      `“${cleanName}” salva neste navegador.`;
+  }
+}
+function createCompositionId() {
+  return (
+    globalThis.crypto?.randomUUID?.() ??
+    `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  );
+}
+function handleCompositionHistory(action, id) {
+  const saved = readSavedCompositions();
+  const item = saved.find((entry) => entry.id === id);
+  if (!item) return;
+  if (action === 'delete') {
+    if (!confirm(`Excluir “${item.name}” deste navegador?`)) return;
+    writeSavedCompositions(saved.filter((entry) => entry.id !== id));
+    if (editingCompositionId === id) resetEditingComposition();
+    return;
+  }
+  if (action === 'duplicate') {
+    const name = prompt('Nome da cópia:', `${item.name} (cópia)`);
+    if (name === null || !name.trim()) return;
+    const copy = {
+      ...item,
+      id: createCompositionId(),
+      name: name.trim(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    writeSavedCompositions([copy, ...saved]);
+    return;
+  }
+  if (action === 'load') {
+    if (!champions.length) {
+      document.querySelector('#history-status').textContent =
+        'Aguarde o catálogo de campeões carregar.';
+      return;
+    }
+    const hydrate = (entries = []) =>
+      Object.fromEntries(
+        entries
+          .map(({ lane, championId }) => [
+            lane,
+            champions.find((champion) => champion.id === championId),
+          ])
+          .filter(([, champion]) => champion),
+      );
+    teams = { ally: hydrate(item.ally), enemy: hydrate(item.enemy) };
+    editingCompositionId = item.id;
+    document.querySelector('#save-local-composition').textContent =
+      'Atualizar composição';
+    document.querySelector('#history-status').textContent =
+      `Editando “${item.name}”. Salve para atualizar.`;
+    renderTeam();
+    document
+      .querySelector('#builder')
+      .scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+function resetEditingComposition() {
+  editingCompositionId = null;
+  const button = document.querySelector('#save-local-composition');
+  if (button) button.textContent = 'Salvar composição';
+}
+let analysisRequestId = 0;
+function clampScore(value) {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+function scoreTeamComposition(team) {
+  const picks = laneKeys.map((lane) => team[lane]);
+  const physical = picks.filter(
+    (champion) => champion.info.attack >= champion.info.magic,
+  ).length;
+  const magical = picks.length - physical;
+  const magicShare = magical / picks.length;
+  const balance =
+    physical && magical
+      ? clampScore(82 + Math.max(0, 18 - Math.abs(0.5 - magicShare) * 36))
+      : 48;
+  const frontliners = picks.filter(
+    (champion) =>
+      champion.tags.some((tag) => ['Tank', 'Fighter'].includes(tag)) ||
+      champion.info.defense >= 8,
+  ).length;
+  const supports = picks.filter((champion) => champion.tags.includes('Support')).length;
+  const engageProxy = picks.filter(
+    (champion) => champion.tags.includes('Tank') || champion.tags.includes('Fighter'),
+  ).length;
+  const magicClasses = picks.filter((champion) =>
+    champion.tags.includes('Mage'),
+  ).length;
+  const estimatedDamage = picks.map((champion) => ({
+    physical: champion.info.attack,
+    magic: champion.info.magic,
+  }));
+  return {
+    picks,
+    physical,
+    magical,
+    magicShare,
+    balance,
+    frontliners,
+    supports,
+    engageProxy,
+    magicClasses,
+    estimatedDamage,
+  };
+}
+function kitSignals(detail) {
+  const descriptions = [
+    detail.passive?.description,
+    ...detail.spells.map(
+      (spell) => `${spell.name} ${spell.description} ${spell.tooltip}`,
+    ),
+  ]
+    .join(' ')
+    .toLowerCase();
+  return {
+    engage:
+      /avan[cç]|invest|arranc|salta|mergulh|arremess|puxa|dash|charge|leap|knock.?up|engage/.test(
+        descriptions,
+      ),
+    cc: /atord|imobil|enraiz|silenc|arremess|derrub|lent|paralis|stun|root|airborne|knock.?up|suppress/.test(
+      descriptions,
+    ),
+    protect:
+      /escud|cura|curar|proteg|reduz.*dano|shield|heal|protect|damage reduction/.test(
+        descriptions,
+      ),
+    area: /inimigos? (pr[oó]ximos|na [aá]rea|atingidos)|todos os inimigos|em [aá]rea|nearby enemies|all enemies|area of effect/.test(
+      descriptions,
+    ),
+  };
+}
+async function analyzeCompositionTeam(team) {
+  const base = scoreTeamComposition(team);
+  const details = await Promise.all(
+    base.picks.map((champion) => getChampionDetail(champion.id).catch(() => null)),
+  );
+  const signals = details.filter(Boolean).map(kitSignals);
+  const detected = (key) => signals.filter((signal) => signal[key]).length;
+  const engage = detected('engage');
+  const cc = detected('cc');
+  const protect = detected('protect');
+  const area = detected('area');
+  const dimensions = {
+    'Equilíbrio de dano': base.balance,
+    'Linha de frente': clampScore(base.frontliners * 28 + (base.frontliners ? 16 : 0)),
+    Iniciação: clampScore(engage * 30 + Math.min(base.engageProxy, 2) * 12 + 10),
+    'Controle de grupo': clampScore(
+      cc * 27 + Math.min(base.engageProxy + base.magicClasses, 2) * 10 + 8,
+    ),
+    Proteção: clampScore(protect * 32 + base.supports * 13 + 8),
+    'Luta em equipe': clampScore(
+      area * 22 + (base.magicClasses + base.supports + base.frontliners) * 9 + 10,
+    ),
+  };
+  const score = clampScore(
+    Object.values(dimensions).reduce((sum, value) => sum + value, 0) /
+      Object.keys(dimensions).length,
+  );
+  return {
+    ...base,
+    dimensions,
+    score,
+    engage,
+    cc,
+    protect,
+    area,
+    detailsAvailable: details.filter(Boolean).length,
+  };
+}
+function renderTeamAnalysis(team, side, result) {
+  const title = side === 'ally' ? 'Sua equipe · Azul' : 'Adversário · Vermelho';
+  const strong = Object.entries(result.dimensions)
+    .filter(([, value]) => value >= 70)
+    .map(([label]) => label);
+  const attention = Object.entries(result.dimensions)
+    .filter(([, value]) => value < 55)
+    .map(([label]) => label);
+  const notes = [];
+  if (result.physical && result.magical)
+    notes.push(
+      `Dano com fontes físicas e mágicas estimadas (${result.physical} / ${result.magical} campeões pelo atributo de maior peso).`,
+    );
+  else
+    notes.push(
+      'O dano está concentrado em um tipo; a estimativa usa Ataque/Magia do Data Dragon.',
+    );
+  if (result.frontliners >= 2)
+    notes.push('Dois ou mais campeões com perfil de linha de frente (classe/Defesa).');
+  if (result.engage >= 2)
+    notes.push('Descrições oficiais indicam ferramentas de iniciação em vários kits.');
+  if (result.cc >= 2)
+    notes.push(
+      'Descrições oficiais indicam controle de grupo distribuído pela equipe.',
+    );
+  if (result.protect >= 2)
+    notes.push(
+      'Há habilidades descritas como cura, escudo ou proteção em mais de um kit.',
+    );
+  if (result.area >= 2)
+    notes.push('Várias descrições mencionam dano ou efeito em área.');
+  if (!result.detailsAvailable)
+    notes.push(
+      'Habilidades não carregaram; alguns sinais usam apenas classes e atributos.',
+    );
+  const dimensionMarkup = Object.entries(result.dimensions)
+    .map(
+      ([label, value]) =>
+        `<div class="dimension-row"><span>${label}</span><div><i style="width:${value}%"></i></div><b>${value}</b></div>`,
+    )
+    .join('');
+  return `<article class="analysis-team ${side}"><div class="analysis-team-heading"><h4>${title}</h4><strong>${result.score}<small>/100</small></strong></div><div class="dimensions">${dimensionMarkup}</div><div class="analysis-notes"><h5>O que o modelo detectou</h5><ul>${notes.map((note) => `<li>${note}</li>`).join('')}</ul>${attention.length ? `<p class="attention-line">Pontos de atenção: ${attention.join(', ')}.</p>` : '<p class="positive-line">Nenhum ponto crítico neste modelo.</p>'}${strong.length ? `<p class="positive-line">Destaques: ${strong.join(', ')}.</p>` : ''}</div></article>`;
+}
+async function renderCompositionAnalysis() {
+  const container = document.querySelector('#synergy-analysis');
+  const requestId = ++analysisRequestId;
+  const blueCount = laneKeys.filter((lane) => teams.ally[lane]).length;
+  const redCount = laneKeys.filter((lane) => teams.enemy[lane]).length;
+  if (blueCount < 5 || redCount < 5) {
+    container.innerHTML = `<p class="note">Complete as duas equipes para comparar as composições. Sua equipe: ${blueCount}/5 · Adversário: ${redCount}/5.</p>`;
+    return;
+  }
+  container.innerHTML =
+    '<p class="note">Analisando atributos, classes e descrições oficiais das habilidades...</p>';
+  const [blue, red] = await Promise.all([
+    analyzeCompositionTeam(teams.ally),
+    analyzeCompositionTeam(teams.enemy),
+  ]);
+  if (requestId !== analysisRequestId) return;
+  const comparison = Object.keys(blue.dimensions).map((dimension) => {
+    const difference = blue.dimensions[dimension] - red.dimensions[dimension];
+    return Math.abs(difference) >= 12
+      ? `${dimension}: ${difference > 0 ? 'Azul' : 'Vermelho'} tem mais ferramentas no modelo.`
+      : `${dimension}: perfil semelhante.`;
+  });
+  container.innerHTML = `<div class="synergy-scores">${renderTeamAnalysis(teams.ally, 'ally', blue)}${renderTeamAnalysis(teams.enemy, 'enemy', red)}</div><section class="composition-comparison"><h4>Comparação do draft</h4><p><strong>Sinergia estimada:</strong> Azul ${blue.score}/100 · Vermelho ${red.score}/100. A diferença mede apenas os critérios abaixo; não prevê o vencedor.</p><ul>${comparison.map((line) => `<li>${line}</li>`).join('')}</ul></section><p class="model-note">Como o modelo funciona: seis dimensões determinísticas usam os atributos Ataque/Magia/Defesa, classes do catálogo e sinais encontrados nas descrições oficiais das habilidades do patch ${patchVersion}. Pesos e limites são regras heurísticas do RiftLab, não estatísticas de partidas; combinações táticas específicas e vantagem real em confrontos não são inferidas.</p>`;
+}
 let pickerTarget = null;
 function openPicker(side, lane) {
   pickerTarget = { side, lane };
@@ -337,6 +720,8 @@ function renderTeam() {
   }
   document.querySelector('#simulation-result').innerHTML =
     `<div class="sim-empty">${ready ? 'Pronto para a partida. Clique em “Simular uma partida” para acompanhar a animação.' : 'Monte as duas equipes com cinco campeões para liberar a simulação.'}</div>`;
+  renderCompositionAnalysis();
+  renderCompositionHistory();
 }
 function teamPower(team) {
   const picks = laneKeys.map((lane) => team[lane]);
@@ -936,30 +1321,35 @@ function notify(t) {
 }
 search.addEventListener('input', renderGrid);
 document.querySelector('#sort').addEventListener('change', renderGrid);
+document.querySelector('#class-filter').addEventListener('change', renderGrid);
+document.querySelector('#difficulty-filter').addEventListener('change', renderGrid);
 document.querySelector('#clear').onclick = () => {
   teams = { ally: {}, enemy: {} };
+  resetEditingComposition();
   renderTeam();
 };
+document
+  .querySelector('#save-local-composition')
+  .addEventListener('click', saveLocalComposition);
 document.querySelector('#add-ally').onclick = () => addToTeam('ally');
 document.querySelector('#add-enemy').onclick = () => addToTeam('enemy');
+document
+  .querySelector('#position-select')
+  .addEventListener('change', updateChampionMatchupLink);
 document.querySelector('#simulate').onclick = simulateMatch;
 document.querySelector('#picker-search').addEventListener('input', renderPickerResults);
-document.querySelectorAll('.nav button').forEach(
-  (b) =>
-    (b.onclick = () => {
-      document
-        .querySelectorAll('.nav button')
-        .forEach((x) => x.classList.remove('active'));
-      b.classList.add('active');
-      document.querySelector(`#${b.dataset.view}`).scrollIntoView({
-        behavior: 'smooth',
-        block: b.dataset.view === 'guide' ? 'start' : 'center',
-      });
-    }),
+document.querySelectorAll('.nav [data-view]').forEach((link) =>
+  link.addEventListener('click', () => {
+    document
+      .querySelectorAll('.nav [data-view]')
+      .forEach((item) => item.classList.remove('active'));
+    link.classList.add('active');
+  }),
 );
 renderRoles();
 loadChampions();
 renderTeam();
+renderCompositionHistory();
 
 const API_BASE_URL = (
   window.RIFTLAB_API_URL ||
@@ -1035,6 +1425,7 @@ async function loadSharedComposition() {
           .filter(([, champion]) => champion),
       );
     teams = { ally: mapTeam(result.ally), enemy: mapTeam(result.enemy) };
+    resetEditingComposition();
     renderTeam();
     setSaveStatus(`Composição compartilhada carregada · código ${result.code}.`);
   } catch (error) {

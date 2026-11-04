@@ -213,6 +213,29 @@ button {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
+.gallery-heading,
+.synergy-heading,
+.history-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+.gallery-heading h2,
+.synergy-heading h3,
+.history-heading h3 {
+  margin: 8px 0;
+  font: 600 25px 'Space Grotesk';
+}
+.gallery-heading p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.gallery-heading .count {
+  flex-shrink: 0;
+}
 .champ {
   background: var(--panel2);
   border: 1px solid transparent;
@@ -613,6 +636,263 @@ dialog::backdrop {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.5;
+}
+.guide-hero {
+  min-height: 285px;
+  display: flex;
+  align-items: end;
+  padding: 28px;
+  border-radius: 14px;
+  background:
+    linear-gradient(90deg, #101414ee 0%, #101414a8 45%, #10141410 100%),
+    linear-gradient(0deg, #101414b0, transparent 70%),
+    var(--guide-art) center 25% / cover;
+}
+.guide-hero h2 {
+  margin: 8px 0;
+  font: 700 clamp(32px, 6vw, 52px)/1 'Space Grotesk';
+}
+.guide-hero p {
+  margin: 0;
+  color: #e0e8df;
+}
+.guide-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.guide-facts > div {
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel2);
+}
+.guide-facts span,
+.guide-facts strong {
+  display: block;
+}
+.guide-facts span {
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.guide-facts strong {
+  font-size: 13px;
+}
+.guide-lore,
+.guide-tips > section {
+  padding: 15px 0;
+  border-top: 1px solid var(--line);
+}
+.guide-matchups {
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--panel2);
+}
+.guide-matchups h3 {
+  margin: 0 0 6px;
+  font: 600 16px 'Space Grotesk';
+}
+.guide-matchups p {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.guide-matchups a {
+  color: var(--lime);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.guide-lore h3,
+.guide-tips h3 {
+  margin: 0 0 8px;
+  font: 600 16px 'Space Grotesk';
+}
+.guide-lore .detail-blurb {
+  margin: 0;
+}
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 18px;
+}
+.guide-tips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.guide-tips ul,
+.analysis-notes ul,
+.composition-comparison ul {
+  margin: 8px 0;
+  padding-left: 19px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.guide-disclaimer,
+.model-note {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.synergy-panel,
+.composition-history {
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+.estimate-badge {
+  padding: 7px 10px;
+  border: 1px solid #59645d;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 10px;
+  text-align: center;
+}
+.synergy-scores {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.analysis-team,
+.composition-comparison,
+.history-card {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #111615;
+}
+.analysis-team-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.analysis-team-heading h4,
+.composition-comparison h4 {
+  margin: 0;
+  font: 600 16px 'Space Grotesk';
+}
+.analysis-team-heading > strong {
+  color: var(--lime);
+  font: 700 28px 'Space Grotesk';
+}
+.analysis-team.red .analysis-team-heading > strong {
+  color: #ff9d91;
+}
+.analysis-team-heading small {
+  color: var(--muted);
+  font: 500 11px 'DM Sans';
+}
+.dimensions {
+  display: grid;
+  gap: 9px;
+  margin-top: 14px;
+}
+.dimension-row {
+  display: grid;
+  grid-template-columns: 125px minmax(50px, 1fr) 27px;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.dimension-row > div {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #303936;
+}
+.dimension-row i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--lime);
+}
+.analysis-team.red .dimension-row i {
+  background: #ed8173;
+}
+.dimension-row b {
+  color: var(--text);
+  text-align: right;
+}
+.analysis-notes {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.analysis-notes h5 {
+  margin: 0;
+  font-size: 12px;
+}
+.analysis-notes li + li {
+  margin-top: 4px;
+}
+.analysis-notes p,
+.composition-comparison p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.analysis-notes .attention-line {
+  color: #ffe3a2;
+}
+.analysis-notes .positive-line {
+  color: #c8f17f;
+}
+.composition-comparison {
+  margin-top: 14px;
+}
+.composition-comparison p {
+  margin-bottom: 5px;
+}
+.composition-comparison li + li {
+  margin-top: 3px;
+}
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.history-card > div:first-child {
+  display: grid;
+  gap: 5px;
+}
+.history-card strong {
+  font: 600 15px 'Space Grotesk';
+}
+.history-card small,
+.history-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+.history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+.history-actions button {
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel2);
+  color: var(--text);
+  font-size: 10px;
+}
+.history-actions button:hover {
+  border-color: #687f4c;
+}
+.history-heading #history-status {
+  color: var(--muted);
+  font-size: 11px;
 }
 .note {
   border-left: 2px solid var(--gold);
@@ -1940,4 +2220,28 @@ dialog[open] {
   font-size: 11px;
   overflow-wrap: anywhere;
   line-height: 1.45;
+}
+@media (max-width: 760px) {
+  .synergy-scores,
+  .history-grid,
+  .skill-grid,
+  .guide-tips {
+    grid-template-columns: 1fr;
+  }
+  .guide-hero {
+    min-height: 220px;
+    padding: 18px;
+  }
+  .guide-facts {
+    grid-template-columns: 1fr;
+  }
+  .synergy-heading,
+  .history-heading,
+  .gallery-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .dimension-row {
+    grid-template-columns: 112px minmax(35px, 1fr) 24px;
+  }
 }
