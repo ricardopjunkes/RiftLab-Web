@@ -17,6 +17,7 @@
         <nav class="nav" aria-label="Navegação principal">
           <a href="./index.html#guide">Campeões</a>
           <a href="./index.html#builder">Composições</a>
+          <a href="./academy.html">Academy</a>
           <a class="active" href="./quiz.html" aria-current="page"
             >Adivinhe o Campeão</a
           >
@@ -107,6 +108,22 @@
                 aria-live="polite"
               ></div>
             </div>
+          </div>
+        </section>
+        <section class="panel quiz-stats" aria-labelledby="quiz-stats-title">
+          <div class="quiz-stats-heading">
+            <div>
+              <div class="eyebrow">Seu progresso</div>
+              <h2 id="quiz-stats-title">Estatísticas e sequência</h2>
+            </div>
+            <button class="academy-reset" id="quiz-reset" type="button">
+              Zerar estatísticas
+            </button>
+          </div>
+          <div class="quiz-stat-grid" id="quiz-stat-grid"></div>
+          <div class="quiz-history">
+            <h3>Desafios recentes</h3>
+            <ol id="quiz-history-list"></ol>
           </div>
         </section>
       </main>

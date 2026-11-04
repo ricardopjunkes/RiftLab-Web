@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#101414" />
+    <title>Rift Lab Academy</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand" href="./index.html"
+          ><span class="brandmark">✦</span><span>rift<em>lab</em></span></a
+        >
+        <nav class="nav" aria-label="Navegação principal">
+          <a href="./index.html#guide">Campeões</a
+          ><a href="./index.html#builder">Composições</a
+          ><a href="./quiz.html">Adivinhe o Campeão</a
+          ><a class="active" href="./academy.html" aria-current="page">Academy</a>
+        </nav>
+        <div class="topright">APRENDA JOGANDO</div>
+      </header>
+      <main class="quiz-page-content">
+        <a class="quiz-back" href="./index.html">← Voltar para o RiftLab</a>
+        <section class="panel academy-panel">
+          <div class="eyebrow">Rift Lab Academy · dados oficiais do Data Dragon</div>
+          <h1>Aprenda um pouco a cada partida.</h1>
+          <p class="academy-intro">
+            Desafios rápidos sobre habilidades, classes e decisões de jogo. Responda,
+            veja a explicação e some pontos no seu navegador.
+          </p>
+          <div class="academy-scoreboard">
+            <span>Pontos <strong id="academy-points">0</strong></span
+            ><span>Acertos <strong id="academy-correct">0</strong></span
+            ><span>Sequência <strong id="academy-streak">0</strong></span
+            ><span class="patch" id="academy-patch">Carregando dados oficiais</span>
+          </div>
+          <article class="academy-challenge" id="academy-challenge" aria-live="polite">
+            <div class="academy-type" id="academy-type">Preparando desafio</div>
+            <h2 id="academy-question">Carregando o elenco oficial…</h2>
+            <div class="academy-answers" id="academy-answers"></div>
+            <p class="academy-feedback" id="academy-feedback" role="status"></p>
+            <button id="academy-next" type="button" hidden>Próximo desafio</button>
+          </article>
+          <p class="note">
+            Os desafios de classe usam as tags oficiais do Data Dragon. Questões sobre
+            estratégia são educativas e não representam uma recomendação competitiva ou
+            estatística de vitória.
+          </p>
+        </section>
+      </main>
+      <footer class="footer">
+        <span><strong>riftlab</strong> · Academy</span
+        ><span>Não afiliado à Riot Games.</span>
+      </footer>
+    </div>
+    <script src="./academy.js"></script>
+  </body>
+</html>

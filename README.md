@@ -18,8 +18,12 @@ O catálogo e as imagens dos campeões continuam vindo do Data Dragon da Riot di
 ```text
 frontend/
   index.html       página
+  quiz.html        minigame Adivinhe o Campeão
+  academy.html    desafios da Rift Lab Academy
   styles.css       estilos
   app.js           busca, composição e simulação
+  quiz.js          pontuação, sequência e histórico do minigame
+  academy.js       desafios e pontuação geral da Academy
   config.js        endereço público da API
 backend/
   server.js        API para salvar e carregar composições
@@ -86,4 +90,6 @@ Depois que a API estiver no ar, abra `frontend/config.js`, defina `window.RIFTLA
 
 - Taxas de confronto não são extraídas do OP.GG; a página abre o OP.GG para consulta manual.
 - A simulação é recreativa e probabilística, não reproduz partidas profissionais reais.
+- Pontuação, histórico e sequência dos desafios ficam no LocalStorage do navegador usado; não sincronizam entre dispositivos.
+- Ouro, níveis, ondas e torres da simulação são uma aproximação didática baseada no tempo, nas ondas e na vantagem estimada do draft; não são dados ao vivo nem estatísticas profissionais.
 - A API precisa estar acessível pela internet para salvar e abrir links compartilhados.

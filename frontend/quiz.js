@@ -1,4 +1,22 @@
 const TOTAL_ATTEMPTS = 5;
+const STATS_KEY = 'riftlab-quiz-stats-v1';
+const emptyStats = () => ({
+  total: 0,
+  correct: 0,
+  streak: 0,
+  bestStreak: 0,
+  points: 0,
+  discovered: [],
+  history: [],
+});
+function readStats() {
+  try {
+    return { ...emptyStats(), ...JSON.parse(localStorage.getItem(STATS_KEY) || '{}') };
+  } catch {
+    return emptyStats();
+  }
+}
+let playerStats = readStats();
 const quizState = {
   champions: [],
   championDetails: new Map(),
@@ -51,6 +69,65 @@ function updateAttempts() {
     `${quizState.attemptsRemaining}/${TOTAL_ATTEMPTS} tentativas`;
 }
 
+function renderStats() {
+  const rate = playerStats.total
+    ? Math.round((playerStats.correct / playerStats.total) * 100)
+    : 0;
+  const values = [
+    ['Desafios', playerStats.total],
+    ['Acertos', playerStats.correct],
+    ['Taxa de acerto', `${rate}%`],
+    ['Melhor sequência', playerStats.bestStreak],
+    ['Campeões descobertos', playerStats.discovered.length],
+    ['Pontos', playerStats.points],
+    ['Sequência atual', playerStats.streak],
+  ];
+  document.querySelector('#quiz-stat-grid').innerHTML = values
+    .map(
+      ([label, value]) =>
+        `<article class="quiz-stat"><span>${label}</span><strong>${value}</strong></article>`,
+    )
+    .join('');
+  const history = document.querySelector('#quiz-history-list');
+  history.innerHTML = playerStats.history.length
+    ? playerStats.history
+        .map(
+          (item) =>
+            `<li><span class="history-result ${item.won ? 'hit' : 'miss'}">${item.won ? 'ACERTO' : 'ERRO'}</span><strong>${item.champion}</strong><span>${item.attempts ? `${item.attempts}ª tentativa` : '5 tentativas'} · ${item.points} pts</span><time>${new Date(item.date).toLocaleDateString('pt-BR')}</time></li>`,
+        )
+        .join('')
+    : '<li class="quiz-history-empty">Seus desafios concluídos aparecerão aqui.</li>';
+}
+
+function saveChallengeResult(won) {
+  const champion = quizState.challenge.champion;
+  const attempts = won ? TOTAL_ATTEMPTS - quizState.attemptsRemaining + 1 : 0;
+  const points = won ? 120 - attempts * 20 : 0;
+  playerStats.total++;
+  if (won) {
+    playerStats.correct++;
+    playerStats.streak++;
+    playerStats.bestStreak = Math.max(playerStats.bestStreak, playerStats.streak);
+    playerStats.points += points;
+    if (!playerStats.discovered.includes(champion.id))
+      playerStats.discovered.push(champion.id);
+  } else playerStats.streak = 0;
+  playerStats.history.unshift({
+    champion: champion.name,
+    championId: champion.id,
+    won,
+    attempts,
+    points,
+    date: new Date().toISOString(),
+  });
+  playerStats.history = playerStats.history.slice(0, 10);
+  localStorage.setItem(STATS_KEY, JSON.stringify(playerStats));
+  renderStats();
+  quizMessage.textContent = won
+    ? `Você acertou na ${attempts}ª tentativa: +${points} pontos!`
+    : 'As tentativas acabaram. Sequência zerada.';
+}
+
 function setRevealLevel(level) {
   quizImage.dataset.level = String(level);
   const progress = document.querySelector('#quiz-progress-fill');
@@ -76,6 +153,7 @@ function setRevealLevel(level) {
 
 function finishChallenge(won) {
   quizState.finished = true;
+  saveChallengeResult(won);
   setRevealLevel(TOTAL_ATTEMPTS);
   quizImage.style.setProperty('--quiz-current-rotation', '0deg');
   quizImage.style.setProperty('--quiz-mirror', '1');
@@ -84,9 +162,6 @@ function finishChallenge(won) {
     `${quizState.challenge.spell.name} · ${['Q', 'W', 'E', 'R'][quizState.challenge.spellIndex] || 'Habilidade'}`;
   document.querySelector('#quiz-result-name').textContent =
     quizState.challenge.champion.name;
-  quizMessage.textContent = won
-    ? 'Você acertou! Resposta correta.'
-    : 'As tentativas acabaram!';
   quizMessage.classList.toggle('is-correct', won);
   quizCard.classList.toggle('is-success', won);
   quizCard.classList.toggle('is-failure', !won);
@@ -269,5 +344,12 @@ quizInput.addEventListener('keydown', (event) => {
 });
 quizSubmit.addEventListener('click', submitAnswer);
 quizNext.addEventListener('click', startNextChallenge);
+document.querySelector('#quiz-reset').addEventListener('click', () => {
+  if (!window.confirm('Zerar toda a pontuação e o histórico deste navegador?')) return;
+  playerStats = emptyStats();
+  localStorage.removeItem(STATS_KEY);
+  renderStats();
+});
 
+renderStats();
 loadQuizData();

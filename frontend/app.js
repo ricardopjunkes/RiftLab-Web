@@ -810,7 +810,7 @@ function simulateMatch() {
     button = document.querySelector('#simulate');
   button.disabled = true;
   button.textContent = 'Partida em andamento…';
-  result.innerHTML = `<div class="sim-stage"><div class="sim-live"><div class="sim-clock" id="sim-clock">00:00</div><div class="sim-live-copy"><small>O que está acontecendo</small><strong id="live-event">Os dez campeões entram no Rift e seguem para suas rotas.</strong></div></div><div class="sim-layout"><div><div class="map-viewport" id="map-viewport"><img class="map-image" src="https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/map/map11.png" alt="Mapa do Summoner’s Rift"><span class="map-label top">Topo</span><span class="map-label mid">Meio</span><span class="map-label bot">Inferior</span><span class="map-base">BASE AZUL</span><span class="map-base red-base">BASE VERMELHA</span><div class="objective-pin" id="dragon-pin">DRAGÃO</div><div class="objective-pin baron" id="baron-pin">ARAUTO</div><div class="unit-layer" id="unit-layer"></div></div><div class="map-legend"><span><i class="legend-dot"></i>Sua equipe</span><span><i class="legend-dot red"></i>Adversário</span><span><i class="legend-dot gold"></i>Objetivo</span></div></div><aside class="sim-rail"><div class="sim-scoreboard"><div class="score-card"><span>AZUL · SUA EQUIPE</span><strong id="blue-kills">0 abates</strong></div><div class="score-card red"><span>VERMELHO · ADVERSÁRIO</span><strong id="red-kills">0 abates</strong></div></div><div class="sim-feed"><h3>Momentos importantes</h3><ol id="event-feed"></ol></div><div class="score-card"><span>VANTAGEM ESTIMADA DO MODELO</span><strong style="color:var(--text)" id="sim-chance">Azul ${blueChance.toFixed(1)}% · Vermelho ${(100 - blueChance).toFixed(1)}%</strong></div></aside></div><div id="sim-finish"></div></div>`;
+  result.innerHTML = `<div class="sim-stage"><div class="sim-live"><div class="sim-clock" id="sim-clock">00:00</div><div class="sim-live-copy"><small>O que está acontecendo</small><strong id="live-event">Os dez campeões entram no Rift e seguem para suas rotas.</strong></div></div><div class="sim-layout"><div><div class="map-viewport" id="map-viewport"><img class="map-image" src="https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/map/map11.png" alt="Mapa do Summoner’s Rift"><span class="map-label top">Topo</span><span class="map-label mid">Meio</span><span class="map-label bot">Inferior</span><span class="map-base">BASE AZUL</span><span class="map-base red-base">BASE VERMELHA</span><div class="objective-pin" id="dragon-pin">DRAGÃO</div><div class="objective-pin baron" id="baron-pin">ARAUTO</div><div class="unit-layer" id="unit-layer"></div></div><div class="map-legend"><span><i class="legend-dot"></i>Sua equipe</span><span><i class="legend-dot red"></i>Adversário</span><span><i class="legend-dot gold"></i>Objetivo</span></div></div><aside class="sim-rail"><div class="sim-scoreboard"><div class="score-card"><span>AZUL · SUA EQUIPE</span><strong id="blue-kills">0 abates</strong></div><div class="score-card red"><span>VERMELHO · ADVERSÁRIO</span><strong id="red-kills">0 abates</strong></div></div><div class="sim-economy"><div><b>Azul</b><span id="blue-economy">2.5k ouro · Nv. 1 · 11 torres · 0 dragões · 0 Barões</span></div><div><b>Vermelho</b><span id="red-economy">2.5k ouro · Nv. 1 · 11 torres · 0 dragões · 0 Barões</span></div></div><div class="sim-feed"><h3>Momentos importantes</h3><ol id="event-feed"></ol></div><div class="score-card"><span>VANTAGEM ESTIMADA DO MODELO</span><strong style="color:var(--text)" id="sim-chance">Azul ${blueChance.toFixed(1)}% · Vermelho ${(100 - blueChance).toFixed(1)}%</strong></div></aside></div><div id="sim-finish"></div></div>`;
   const teamsData = { blue: teams.ally, red: teams.enemy };
   const starts = {
     blue: {
@@ -886,6 +886,38 @@ function simulateMatch() {
   }
   const layer = document.querySelector('#unit-layer');
   const units = new Map();
+  const matchState = {
+    blue: { gold: 2500, level: 1, towers: 11, dragons: 0, barons: 0 },
+    red: { gold: 2500, level: 1, towers: 11, dragons: 0, barons: 0 },
+    towerHealth: { blue: {}, red: {} },
+    waveNumber: 0,
+  };
+  const minionMarkers = [];
+  const towerMarkers = [];
+  for (const side of ['blue', 'red']) {
+    for (const lane of ['Topo', 'Meio', 'Atirador']) {
+      const path = lanePaths[side][lane];
+      const minion = document.createElement('div');
+      minion.className = `minion-wave ${side}`;
+      minion.setAttribute(
+        'aria-label',
+        `Onda de minions ${side === 'blue' ? 'azul' : 'vermelha'} na rota ${lane}`,
+      );
+      layer.append(minion);
+      minionMarkers.push({ side, lane, marker: minion });
+      matchState.towerHealth[side][lane] = [100, 100, 100];
+      for (let index = 0; index < 3; index++) {
+        const point = routePoint(path, 0.18 + index * 0.19);
+        const tower = document.createElement('span');
+        tower.className = `tower-marker ${side}`;
+        tower.style.left = `${point[0]}%`;
+        tower.style.top = `${point[1]}%`;
+        tower.setAttribute('aria-label', `Torre ${index + 1} da rota ${lane}`);
+        layer.append(tower);
+        towerMarkers.push({ side, lane, index, marker: tower });
+      }
+    }
+  }
   for (const side of ['blue', 'red'])
     for (const lane of laneKeys) {
       const c = teamsData[side][lane],
@@ -971,6 +1003,58 @@ function simulateMatch() {
     if (kind) item.className = kind;
     item.innerHTML = `<time>${fmt(min)}</time><span>${text}</span>`;
     feed.prepend(item);
+  }
+  function renderMatchState() {
+    for (const side of ['blue', 'red']) {
+      const state = matchState[side];
+      const label = side === 'blue' ? 'blue-economy' : 'red-economy';
+      const output = document.querySelector(`#${label}`);
+      if (output)
+        output.textContent = `${(state.gold / 1000).toFixed(1)}k ouro · Nv. ${state.level} · ${state.towers} torres · ${state.dragons} dragões · ${state.barons} Barões`;
+    }
+    for (const { side, lane, index, marker } of towerMarkers) {
+      const health = matchState.towerHealth[side][lane][index];
+      marker.classList.toggle('destroyed', health <= 0);
+      marker.title = health <= 0 ? 'Torre destruída' : `Torre: ${health}% de vida`;
+    }
+  }
+  function tickEconomy(minute) {
+    for (const side of ['blue', 'red']) {
+      const state = matchState[side];
+      state.gold += 800 + (minute % 2 === 0 ? 300 : 0);
+      state.level = Math.min(18, 1 + Math.floor(minute / 2.4));
+    }
+    const waveNumber = Math.floor(minute / 1.5);
+    if (waveNumber > matchState.waveNumber) {
+      matchState.waveNumber = waveNumber;
+      for (const { side, lane, marker } of minionMarkers) {
+        const progress = Math.min(0.9, 0.08 + waveNumber * 0.022);
+        const [x, y] = routePoint(lanePaths[side][lane], progress);
+        marker.style.left = `${x}%`;
+        marker.style.top = `${y}%`;
+        const opposing = side === 'blue' ? 'red' : 'blue';
+        const pushAdvantage = side === 'blue' ? blueChance >= 50 : blueChance < 50;
+        const pressure = pushAdvantage ? 16 : 10;
+        const towerIndex = matchState.towerHealth[opposing][lane].findIndex(
+          (hp) => hp > 0,
+        );
+        if (towerIndex >= 0) {
+          const health = matchState.towerHealth[opposing][lane];
+          const before = health[towerIndex];
+          health[towerIndex] = Math.max(0, before - pressure);
+          if (before > 0 && health[towerIndex] === 0) {
+            matchState[side].gold += 250;
+            matchState[opposing].towers--;
+            publish(
+              minute,
+              `${side === 'blue' ? 'A onda azul' : 'A onda vermelha'} abriu espaço na rota ${lane}: a equipe ${side === 'blue' ? 'azul' : 'vermelha'} derrubou uma torre.`,
+              'objective-event',
+            );
+          }
+        }
+      }
+    }
+    renderMatchState();
   }
   let mapMode = 'lane',
     pushSide = 'blue',
@@ -1147,6 +1231,8 @@ function simulateMatch() {
       move(side, 'Selva', p[0] + (side === 'blue' ? 2 : -2), p[1]);
       if (side === 'blue') blueKills++;
       else redKills++;
+      matchState[side].gold += 300;
+      renderMatchState();
       document.querySelector('#blue-kills').textContent = `${blueKills} abates`;
       document.querySelector('#red-kills').textContent = `${redKills} abates`;
       publish(3, `${name} aparece na rota ${lane} e garante o primeiro abate!`);
@@ -1181,10 +1267,9 @@ function simulateMatch() {
       document.querySelector('#dragon-pin').classList.add('done');
       document.querySelector('#dragon-pin').textContent =
         owner === 'blue' ? 'AZUL' : 'VERMELHO';
-      if (owner === 'blue') blueKills++;
-      else redKills++;
-      document.querySelector('#blue-kills').textContent = `${blueKills} abates`;
-      document.querySelector('#red-kills').textContent = `${redKills} abates`;
+      matchState[owner].dragons++;
+      matchState[owner].gold += 250;
+      renderMatchState();
       publish(
         7,
         dragonMode === 'contest'
@@ -1207,6 +1292,8 @@ function simulateMatch() {
       gankSide = winnerSide;
       if (winnerSide === 'blue') blueKills++;
       else redKills++;
+      matchState[winnerSide].gold += 300;
+      renderMatchState();
       document.querySelector('#blue-kills').textContent = `${blueKills} abates`;
       document.querySelector('#red-kills').textContent = `${redKills} abates`;
       publish(
@@ -1223,14 +1310,11 @@ function simulateMatch() {
       }
       publish(15, 'Com a vida recuperada, o campeão retorna gradualmente para o Meio.');
     },
-    14: () => {
-      const side = Math.random() < blueChance / 100 ? 'blue' : 'red',
-        lane = ['Topo', 'Meio', 'Atirador'][Math.floor(Math.random() * 3)];
+    14: () =>
       publish(
         14,
-        `${side === 'blue' ? 'Sua equipe' : 'O adversário'} pressiona a rota ${lane} e derruba uma torre.`,
-      );
-    },
+        'As ondas chegam às estruturas: torres perdem vida apenas quando os minions alcançam a rota.',
+      ),
     17: () => {
       mapMode = 'herald';
       document.querySelector('#baron-pin').classList.add('visible');
@@ -1294,6 +1378,9 @@ function simulateMatch() {
           : baronOwner;
       const stolen = baronMode === 'contest' && Math.random() < 0.1;
       if (stolen) side = side === 'blue' ? 'red' : 'blue';
+      matchState[side].barons++;
+      matchState[side].gold += 300;
+      renderMatchState();
       const name = side === 'blue' ? 'Sua equipe azul' : 'O adversário vermelho',
         pin = document.querySelector('#baron-pin');
       pin.classList.add('done');
@@ -1317,7 +1404,15 @@ function simulateMatch() {
     },
     27: () => {
       mapMode = 'push';
-      const side = Math.random() < blueChance / 100 ? 'blue' : 'red';
+      const side =
+        matchState.blue.towers > matchState.red.towers
+          ? 'blue'
+          : matchState.red.towers > matchState.blue.towers
+            ? 'red'
+            : blueKills > redKills ||
+                (blueKills === redKills && matchState.blue.gold >= matchState.red.gold)
+              ? 'blue'
+              : 'red';
       pushSide = side;
       publish(
         27,
@@ -1327,7 +1422,11 @@ function simulateMatch() {
       );
     },
     30: () => {
-      const blueWon = pushSide === 'blue',
+      const blueWon =
+          matchState.blue.towers > matchState.red.towers ||
+          (matchState.blue.towers === matchState.red.towers &&
+            (blueKills > redKills ||
+              (blueKills === redKills && matchState.blue.gold >= matchState.red.gold))),
         winner = blueWon ? 'Sua equipe azul' : 'O adversário vermelho';
       pushSide = blueWon ? 'blue' : 'red';
       mapMode = 'push';
@@ -1350,14 +1449,16 @@ function simulateMatch() {
   };
   let minute = 0;
   publish(0, 'Os dez campeões chegam ao Rift e ocupam suas rotas.');
+  renderMatchState();
   simulationInterval = setInterval(() => {
     minute++;
     tickMap(minute);
+    tickEconomy(minute);
     document.querySelector('#sim-clock').textContent = fmt(minute);
     if (events[minute]) events[minute]();
     else if (minute % 4 === 0 && minute < 29)
       document.querySelector('#live-event').textContent =
-        'As equipes avançam pelas rotas e procuram uma oportunidade.';
+        `Minuto ${minute}: ondas avançam; ouro e experiência acumulados conforme o tempo de jogo.`;
     if (minute >= 30 && !events[30]) {
       clearInterval(simulationInterval);
       simulationInterval = null;
