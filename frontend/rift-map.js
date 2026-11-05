@@ -15,14 +15,24 @@ const markerTypes = {
   herald: { name: 'Arauto do Vale', className: 'objective', icon: 'herald' },
   'champ-blue': { name: 'Campeão azul', className: 'champ-blue', icon: 'champion' },
   'champ-red': { name: 'Campeão vermelho', className: 'champ-red', icon: 'champion' },
+  'generic-blue': {
+    name: 'Personagem genérico azul',
+    className: 'generic-blue',
+    icon: 'helmet',
+  },
+  'generic-red': {
+    name: 'Personagem genérico vermelho',
+    className: 'generic-red',
+    icon: 'helmet',
+  },
 };
 const regionLabels = [
   ['Topo', 500, 104, true],
-  ['Meio', 510, 505, true],
+  ['Meio', 625, 365, true],
   ['Rota inferior', 535, 902, true],
   ['Selva azul', 278, 704, false],
   ['Selva vermelha', 724, 298, false],
-  ['Rio', 510, 455, true],
+  ['Rio', 590, 590, true],
   ['Covil do Barão', 390, 280, true],
   ['Covil do Dragão', 620, 526, true],
   ['Base azul', 148, 846, false],
@@ -47,7 +57,11 @@ const mapUi = {
   regions: document.querySelector('#map-region-labels'),
   markers: document.querySelector('#map-markers'),
   zoom: document.querySelector('#map-zoom'),
-  champion: document.querySelector('#map-champion-select'),
+  championSearch: document.querySelector('#map-champion-search'),
+  championClear: document.querySelector('#map-champion-clear'),
+  championGrid: document.querySelector('#map-champion-grid'),
+  championEmpty: document.querySelector('#map-champion-empty'),
+  addGeneric: document.querySelector('#map-add-generic'),
   routeWeight: document.querySelector('#map-route-weight'),
   routeWeightValue: document.querySelector('#map-route-weight-value'),
   name: document.querySelector('#map-strategy-name'),
@@ -72,7 +86,8 @@ const mapState = {
   markerDrag: null,
   champions: [],
   selectedChampion: null,
-  pendingChampionTool: '',
+  selectedTeam: 'blue',
+  selectedMarkerId: null,
 };
 
 function readSaved() {
@@ -117,7 +132,12 @@ function restoreSnapshot(value) {
     const parsed = JSON.parse(value);
     mapState.markers = Array.isArray(parsed.markers) ? parsed.markers : [];
     mapState.routes = Array.isArray(parsed.routes) ? parsed.routes : [];
+    if (!mapState.markers.some((marker) => marker.id === mapState.selectedMarkerId)) {
+      mapState.selectedMarkerId = null;
+      mapState.selectedChampion = null;
+    }
     renderMapContent();
+    renderChampionGrid();
   } catch {
     mapUi.status.textContent = 'Não foi possível restaurar este estado do mapa.';
   }
@@ -130,13 +150,6 @@ function updateHistoryButtons() {
 }
 
 function setTool(tool) {
-  if (tool.startsWith('champ-') && !mapState.selectedChampion) {
-    mapState.pendingChampionTool = tool;
-    mapUi.status.textContent = 'Escolha um campeão antes de posicioná-lo no mapa.';
-    mapUi.champion.focus();
-    return;
-  }
-  mapState.pendingChampionTool = '';
   mapState.tool = tool;
   mapUi.viewport.dataset.tool = tool;
   document
@@ -144,6 +157,7 @@ function setTool(tool) {
     .forEach((button) =>
       button.setAttribute('aria-pressed', String(button.dataset.mapTool === tool)),
     );
+  mapUi.addGeneric.setAttribute('aria-pressed', String(tool.startsWith('generic-')));
   const mode =
     tool.startsWith('route-') || tool.startsWith('arrow-')
       ? 'Arraste pelo mapa para desenhar.'
@@ -151,9 +165,13 @@ function setTool(tool) {
         ? 'Arraste pelo mapa para mover a vista.'
         : tool === 'select'
           ? 'Toque ou clique em uma marcação para ver seus detalhes. Arraste para reposicionar.'
-          : tool === 'eraser'
-            ? 'Clique perto de uma marcação ou rota para removê-la.'
-            : `Clique no mapa para adicionar: ${markerTypes[tool]?.name || tool}.`;
+          : tool.startsWith('champ-')
+            ? `Clique no mapa para adicionar ${mapState.selectedChampion?.name || 'um personagem genérico'} à equipe ${tool.endsWith('red') ? 'vermelha' : 'azul'}.`
+            : tool.startsWith('generic-')
+              ? 'Clique no mapa para adicionar um personagem genérico.'
+              : tool === 'eraser'
+                ? 'Clique perto de uma marcação ou rota para removê-la.'
+                : `Clique no mapa para adicionar: ${markerTypes[tool]?.name || tool}.`;
   mapUi.status.textContent = mode;
 }
 
@@ -164,10 +182,30 @@ function applyTransform() {
 }
 
 function pointFromEvent(event) {
-  const rect = mapUi.canvas.getBoundingClientRect();
+  const rect = mapUi.viewport.getBoundingClientRect();
+  const width = mapUi.viewport.clientWidth;
+  const height = mapUi.viewport.clientHeight;
   return {
-    x: clamp((event.clientX - rect.left) / rect.width, 0, 1),
-    y: clamp((event.clientY - rect.top) / rect.height, 0, 1),
+    x: clamp(
+      (event.clientX -
+        rect.left -
+        mapUi.viewport.clientLeft -
+        mapState.panX -
+        ((1 - mapState.zoom) * width) / 2) /
+        (width * mapState.zoom),
+      0,
+      1,
+    ),
+    y: clamp(
+      (event.clientY -
+        rect.top -
+        mapUi.viewport.clientTop -
+        mapState.panY -
+        ((1 - mapState.zoom) * height) / 2) /
+        (height * mapState.zoom),
+      0,
+      1,
+    ),
   };
 }
 
@@ -192,6 +230,8 @@ function iconSvg(name) {
     select: '<path d="m5 3 14 10-6 1.2L10 20 5 3Z"/>',
     pan: '<path d="M12 3v18M3 12h18M12 3l-3 3m3-3 3 3M21 12l-3-3m3 3-3 3M12 21l-3-3m3 3 3-3M3 12l3-3m-3 3 3 3"/>',
     champion: '<circle cx="12" cy="12" r="8"/><path d="M8 12h8M12 8v8"/>',
+    helmet:
+      '<path d="M4 14a8 8 0 0 1 16 0v3H4v-3Z"/><path d="M3 17h18l-2 3H5l-2-3Zm9-11v5m-4-3v3m8-3v3"/>',
     ward: '<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><circle cx="12" cy="9" r="2"/>',
     control:
       '<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><path d="m9 9 3-3 3 3-3 3-3-3Z"/>',
@@ -217,7 +257,9 @@ function iconSvg(name) {
       ? 'arrow'
       : name.startsWith('champ-')
         ? 'champion'
-        : name;
+        : name.startsWith('generic-')
+          ? 'helmet'
+          : name;
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[type] || paths.select}</svg>`;
 }
 
@@ -241,8 +283,164 @@ function markerMarkup(marker, data) {
     danger: '<path d="m12 3 10 18H2L12 3Z"/><path d="M12 9v5m0 3h.01"/>',
     interest:
       '<path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6-5.4-2.9-5.4 2.9 1-6-4.4-4.3 6.1-.9L12 3Z"/>',
+    helmet:
+      '<path d="M4 14a8 8 0 0 1 16 0v3H4v-3Z"/><path d="M3 17h18l-2 3H5l-2-3Zm9-11v5m-4-3v3m8-3v3"/>',
   };
   return `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${shapes[data.icon] || shapes.interest}</svg>`;
+}
+
+function normalizeSearch(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('pt-BR');
+}
+
+function findChampionMarker(championId) {
+  return mapState.markers.find((marker) => marker.champion === championId);
+}
+
+function moveMarkerTo(id, point) {
+  const marker = mapState.markers.find((entry) => entry.id === id);
+  if (!marker) return false;
+  marker.x = clamp(point.x, 0, 1);
+  marker.y = clamp(point.y, 0, 1);
+  return true;
+}
+
+function renderChampionGrid() {
+  const query = normalizeSearch(mapUi.championSearch.value);
+  const filtered = mapState.champions.filter((champion) =>
+    normalizeSearch(champion.name).includes(query),
+  );
+  mapUi.championClear.hidden = !mapUi.championSearch.value;
+  mapUi.championEmpty.hidden = filtered.length > 0;
+  mapUi.championGrid.innerHTML = filtered
+    .map((champion) => {
+      const marker = findChampionMarker(champion.id);
+      const used = Boolean(marker);
+      const selected = mapState.selectedChampion?.id === champion.id;
+      return `<button type="button" class="map-champion-choice${used ? ' is-used' : ''}${selected ? ' is-current' : ''}" role="option" aria-selected="${selected}" aria-label="${escapeMap(champion.name)}${used ? ', já está no mapa; selecionar para mover' : ''}" title="${escapeMap(champion.name)}" data-champion-id="${escapeMap(champion.id)}"><span class="map-champion-portrait"><img src="https://ddragon.leagueoflegends.com/cdn/${mapState.patch}/img/champion/${escapeMap(champion.image.full)}" alt="" loading="lazy" />${used ? '<i aria-hidden="true">✓</i>' : ''}</span><span>${escapeMap(champion.name)}</span></button>`;
+    })
+    .join('');
+  mapUi.championGrid.querySelectorAll('[data-champion-id]').forEach((button) =>
+    button.addEventListener('click', () => {
+      const champion = mapState.champions.find(
+        (entry) => entry.id === button.dataset.championId,
+      );
+      if (!champion) return;
+      const existing = findChampionMarker(champion.id);
+      if (existing) {
+        selectMarker(existing.id);
+        return;
+      }
+      mapState.selectedChampion = champion;
+      mapState.selectedMarkerId = null;
+      setTool(`champ-${mapState.selectedTeam}`);
+      renderMapContent();
+      renderChampionGrid();
+    }),
+  );
+}
+
+function normalizeSavedMarkers(markers) {
+  const ids = new Set();
+  const champions = new Set();
+  return markers.filter((marker) => {
+    if (!marker || typeof marker !== 'object' || !markerTypes[marker.type])
+      return false;
+    if (marker.champion) {
+      if (champions.has(marker.champion)) return false;
+      champions.add(marker.champion);
+    }
+    if (!marker.id || ids.has(marker.id))
+      marker.id = crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+    ids.add(marker.id);
+    return true;
+  });
+}
+
+function selectMarker(id) {
+  const marker = mapState.markers.find((entry) => entry.id === id);
+  if (!marker) return;
+  mapState.selectedMarkerId = id;
+  mapState.selectedChampion = marker.champion
+    ? mapState.champions.find((champion) => champion.id === marker.champion) || null
+    : null;
+  mapState.selectedTeam = marker.type.endsWith('red') ? 'red' : 'blue';
+  document.querySelectorAll('[data-champion-team]').forEach((button) => {
+    button.setAttribute(
+      'aria-pressed',
+      String(button.dataset.championTeam === mapState.selectedTeam),
+    );
+  });
+  setTool('select');
+  renderMapContent();
+  renderChampionGrid();
+  const title = marker.label || markerTypes[marker.type]?.name || 'Personagem';
+  mapUi.status.textContent = `${title} selecionado. Arraste para reposicionar.`;
+}
+
+function beginMarkerDrag(marker, event) {
+  event.preventDefault();
+  event.stopPropagation();
+  mapState.selectedMarkerId = marker.id;
+  mapState.selectedChampion = marker.champion
+    ? mapState.champions.find((champion) => champion.id === marker.champion) || null
+    : null;
+  mapState.selectedTeam = marker.type.endsWith('red') ? 'red' : 'blue';
+  document.querySelectorAll('[data-champion-team]').forEach((button) => {
+    button.setAttribute(
+      'aria-pressed',
+      String(button.dataset.championTeam === mapState.selectedTeam),
+    );
+  });
+  setTool('select');
+  renderChampionGrid();
+  mapState.pointerMode = 'marker';
+  mapUi.viewport.dataset.pointerMode = 'marker';
+  mapState.pointerId = event.pointerId;
+  mapState.markerDrag = { id: marker.id, before: snapshot() };
+  mapUi.viewport.setPointerCapture(event.pointerId);
+  renderMapContent();
+}
+
+function moveDraggedMarker(event) {
+  if (
+    mapState.pointerMode !== 'marker' ||
+    mapState.pointerId !== event.pointerId ||
+    !mapState.markerDrag
+  )
+    return false;
+  const marker = mapState.markers.find((entry) => entry.id === mapState.markerDrag.id);
+  if (!marker) return false;
+  moveMarkerTo(marker.id, pointFromEvent(event));
+  const element = [...mapUi.markers.querySelectorAll('[data-marker-id]')].find(
+    (entry) => entry.dataset.markerId === marker.id,
+  );
+  if (element) {
+    element.style.left = `${marker.x * 100}%`;
+    element.style.top = `${marker.y * 100}%`;
+  }
+  return true;
+}
+
+function finishMarkerDrag(event) {
+  if (mapState.pointerId !== event.pointerId || !mapState.markerDrag) return false;
+  const marker = mapState.markers.find((entry) => entry.id === mapState.markerDrag.id);
+  const changed = mapState.markerDrag.before !== snapshot();
+  mapState.markerDrag = null;
+  mapState.pointerMode = '';
+  delete mapUi.viewport.dataset.pointerMode;
+  if (changed) {
+    pushHistory();
+    renderMapContent();
+    mapUi.status.textContent = 'Marcação reposicionada. Use Desfazer para voltar.';
+  } else if (marker) {
+    const detail = marker.label || markerTypes[marker.type]?.name || 'Marcação';
+    mapUi.status.textContent = `${detail}. Arraste para reposicionar.`;
+  }
+  return true;
 }
 
 function renderRegions() {
@@ -287,7 +485,8 @@ function renderMapContent() {
           ? mapState.champions.find((champion) => champion.id === marker.champion)?.name
           : '');
       const title = `${data.name}${label ? ` · ${label}` : ''}`;
-      return `<button type="button" class="map-marker ${data.className} ${layerState[layer] ? '' : 'layer-hidden'}" data-layer="${layer}" style="left:${marker.x * 100}%;top:${marker.y * 100}%" data-marker-id="${escapeMap(marker.id)}" aria-label="${escapeMap(title)}" title="${escapeMap(title)}">${markerMarkup(marker, data)}</button>`;
+      const selected = marker.id === mapState.selectedMarkerId;
+      return `<button type="button" class="map-marker ${data.className}${selected ? ' is-selected' : ''} ${layerState[layer] ? '' : 'layer-hidden'}" data-layer="${layer}" style="left:${marker.x * 100}%;top:${marker.y * 100}%" data-marker-id="${escapeMap(marker.id)}" aria-pressed="${selected}" aria-label="${escapeMap(title)}" title="${escapeMap(title)}">${markerMarkup(marker, data)}</button>`;
     })
     .join('');
   mapUi.markers.querySelectorAll('[data-marker-id]').forEach((button) =>
@@ -297,19 +496,18 @@ function renderMapContent() {
     }),
   );
   mapUi.markers.querySelectorAll('[data-marker-id]').forEach((button) =>
+    button.addEventListener('click', (event) => {
+      if (event.detail === 0) selectMarker(button.dataset.markerId);
+    }),
+  );
+  mapUi.markers.querySelectorAll('[data-marker-id]').forEach((button) =>
     button.addEventListener('pointerdown', (event) => {
-      if (event.button !== 0) return;
-      if (mapState.tool !== 'select') return;
+      if (event.button !== 0 || mapState.tool === 'eraser') return;
       const marker = mapState.markers.find(
         (entry) => entry.id === button.dataset.markerId,
       );
       if (!marker) return;
-      event.preventDefault();
-      event.stopPropagation();
-      mapState.pointerMode = 'marker';
-      mapState.pointerId = event.pointerId;
-      mapState.markerDrag = { id: marker.id, before: snapshot() };
-      mapUi.viewport.setPointerCapture(event.pointerId);
+      beginMarkerDrag(marker, event);
     }),
   );
 }
@@ -317,6 +515,8 @@ function renderMapContent() {
 function markerLayer(type, className = '') {
   if (type.startsWith('champ-blue') || className === 'champ-blue') return 'blue';
   if (type.startsWith('champ-red') || className === 'champ-red') return 'red';
+  if (type === 'generic-blue') return 'blue';
+  if (type === 'generic-red') return 'red';
   if (type.startsWith('ward-')) return 'vision';
   if (type === 'danger' || type === 'interest') return 'alerts';
   return 'objectives';
@@ -335,6 +535,15 @@ function rememberChange() {
 }
 
 function addMarker(point, type) {
+  const championId = type.startsWith('champ-') ? mapState.selectedChampion?.id : null;
+  if (championId) {
+    const existing = findChampionMarker(championId);
+    if (existing) {
+      selectMarker(existing.id);
+      mapUi.status.textContent = `${mapState.selectedChampion.name} já está no mapa. Selecionei a marcação existente para você movê-la.`;
+      return;
+    }
+  }
   const marker = {
     id: crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`,
     type,
@@ -348,14 +557,23 @@ function addMarker(point, type) {
       : {}),
   };
   mapState.markers.push(marker);
+  mapState.selectedMarkerId = marker.id;
   rememberChange();
-  mapUi.status.textContent = `${markerTypes[type]?.name || 'Marcação'} adicionada. Clique com o botão direito nela ou use a borracha para remover.`;
+  if (type.startsWith('champ-') || type.startsWith('generic-')) {
+    setTool('select');
+    renderChampionGrid();
+    mapUi.status.textContent = `${marker.label || markerTypes[type]?.name} adicionado e selecionado. Arraste para reposicionar.`;
+  } else {
+    mapUi.status.textContent = `${markerTypes[type]?.name || 'Marcação'} adicionada. Clique com o botão direito nela ou use a borracha para remover.`;
+  }
 }
 
 function removeMarker(id) {
   if (!mapState.markers.some((marker) => marker.id === id)) return;
   mapState.markers = mapState.markers.filter((marker) => marker.id !== id);
+  if (mapState.selectedMarkerId === id) mapState.selectedMarkerId = null;
   rememberChange();
+  renderChampionGrid();
   mapUi.status.textContent = 'Marcação removida. Use Desfazer para restaurá-la.';
 }
 
@@ -472,11 +690,14 @@ function newStrategy() {
   mapUi.name.value = '';
   mapState.markers = [];
   mapState.routes = [];
+  mapState.selectedMarkerId = null;
+  mapState.selectedChampion = null;
   mapState.history = [];
   mapState.historyIndex = 0;
   pushHistory();
   resetView();
   renderMapContent();
+  renderChampionGrid();
   mapUi.status.textContent = 'Nova estratégia em branco.';
 }
 
@@ -488,6 +709,9 @@ function loadStrategy(id) {
   mapState.markers = Array.isArray(strategy.markers)
     ? JSON.parse(JSON.stringify(strategy.markers))
     : [];
+  mapState.markers = normalizeSavedMarkers(mapState.markers);
+  mapState.selectedMarkerId = null;
+  mapState.selectedChampion = null;
   mapState.routes = Array.isArray(strategy.routes)
     ? JSON.parse(JSON.stringify(strategy.routes))
     : [];
@@ -496,6 +720,7 @@ function loadStrategy(id) {
   pushHistory();
   resetView();
   renderMapContent();
+  renderChampionGrid();
   mapUi.status.textContent =
     strategy.coordinateVersion === MAP_COORDINATE_VERSION
       ? `“${strategy.name}” carregada. Edite o mapa e salve para atualizar.`
@@ -619,13 +844,21 @@ async function exportMap() {
       };
       const x = marker.x * canvas.width,
         y = marker.y * canvas.height;
-      const color = ['enemy', 'champ-red'].includes(info.className)
+      const color = ['enemy', 'champ-red', 'generic-red'].includes(info.className)
         ? '#ff7c83'
         : ['objective', 'control'].includes(info.className)
           ? '#d9bf6d'
           : '#b9e970';
       context.beginPath();
-      context.arc(x, y, marker.type.startsWith('champ-') ? 15 : 10, 0, Math.PI * 2);
+      context.arc(
+        x,
+        y,
+        marker.type.startsWith('champ-') || marker.type.startsWith('generic-')
+          ? 15
+          : 10,
+        0,
+        Math.PI * 2,
+      );
       context.fillStyle = '#07101be8';
       context.fill();
       context.lineWidth = 2;
@@ -651,6 +884,21 @@ async function exportMap() {
             // Keep the team-colored marker when a portrait cannot be loaded.
           }
         }
+      } else if (marker.type.startsWith('generic-')) {
+        context.strokeStyle = color;
+        context.lineWidth = 2;
+        context.beginPath();
+        context.moveTo(x - 8, y + 3);
+        context.quadraticCurveTo(x - 8, y - 9, x, y - 9);
+        context.quadraticCurveTo(x + 8, y - 9, x + 8, y + 3);
+        context.lineTo(x + 10, y + 5);
+        context.lineTo(x - 10, y + 5);
+        context.closePath();
+        context.stroke();
+        context.beginPath();
+        context.moveTo(x, y - 6);
+        context.lineTo(x, y + 3);
+        context.stroke();
       } else {
         context.fillStyle = color;
         context.beginPath();
@@ -693,14 +941,7 @@ async function initializeMap() {
       mapState.champions = Object.values(response.data || {}).sort((a, b) =>
         a.name.localeCompare(b.name, 'pt-BR'),
       );
-      mapUi.champion.innerHTML =
-        '<option value="">Selecione um campeão</option>' +
-        mapState.champions
-          .map(
-            (champion) =>
-              `<option value="${escapeMap(champion.id)}">${escapeMap(champion.name)}</option>`,
-          )
-          .join('');
+      renderChampionGrid();
     } catch {
       mapUi.status.textContent =
         'Retratos de campeões indisponíveis; as demais marcações continuam funcionando.';
@@ -726,16 +967,28 @@ async function initializeMap() {
     document.querySelectorAll('.map-tool-icon').forEach((icon) => {
       icon.innerHTML = iconSvg(icon.closest('[data-map-tool]').dataset.mapTool);
     });
-    mapUi.champion.addEventListener('change', () => {
-      mapState.selectedChampion =
-        mapState.champions.find((champion) => champion.id === mapUi.champion.value) ||
-        null;
-      if (mapState.selectedChampion) {
-        setTool(
-          mapState.pendingChampionTool ||
-            (mapState.tool.startsWith('champ-') ? mapState.tool : 'champ-blue'),
-        );
-      }
+    mapUi.championSearch.addEventListener('input', renderChampionGrid);
+    mapUi.championClear.addEventListener('click', () => {
+      mapUi.championSearch.value = '';
+      mapUi.championSearch.focus();
+      renderChampionGrid();
+    });
+    document.querySelectorAll('[data-champion-team]').forEach((button) => {
+      button.addEventListener('click', () => {
+        mapState.selectedTeam = button.dataset.championTeam;
+        document.querySelectorAll('[data-champion-team]').forEach((teamButton) => {
+          teamButton.setAttribute('aria-pressed', String(teamButton === button));
+        });
+        if (mapState.tool.startsWith('generic-'))
+          setTool(`generic-${mapState.selectedTeam}`);
+        else if (mapState.tool.startsWith('champ-'))
+          setTool(`champ-${mapState.selectedTeam}`);
+        renderChampionGrid();
+      });
+    });
+    mapUi.addGeneric.addEventListener('click', () => {
+      mapState.selectedChampion = null;
+      setTool(`generic-${mapState.selectedTeam}`);
     });
     mapUi.routeWeight.addEventListener('input', () => {
       mapUi.routeWeightValue.textContent = mapUi.routeWeight.value;
@@ -769,7 +1022,13 @@ async function initializeMap() {
         eraseNear(pointFromEvent(event));
         return;
       }
-      if (markerTypes[mapState.tool]) addMarker(pointFromEvent(event), mapState.tool);
+      if (markerTypes[mapState.tool]) {
+        const type =
+          mapState.tool.startsWith('champ-') && !mapState.selectedChampion
+            ? `generic-${mapState.tool.endsWith('red') ? 'red' : 'blue'}`
+            : mapState.tool;
+        addMarker(pointFromEvent(event), type);
+      }
     });
     mapUi.viewport.addEventListener('pointermove', (event) => {
       if (mapState.pointerId !== event.pointerId) return;
@@ -780,11 +1039,7 @@ async function initializeMap() {
           mapState.startPointer.panY + event.clientY - mapState.startPointer.y;
         applyTransform();
       } else if (mapState.pointerMode === 'marker' && mapState.markerDrag) {
-        const marker = mapState.markers.find(
-          (entry) => entry.id === mapState.markerDrag.id,
-        );
-        if (marker) Object.assign(marker, pointFromEvent(event));
-        renderMapContent();
+        moveDraggedMarker(event);
       } else if (mapState.pointerMode === 'draw') {
         const point = pointFromEvent(event);
         const previous = mapState.draftPoints.at(-1);
@@ -798,28 +1053,16 @@ async function initializeMap() {
       if (mapState.pointerId !== event.pointerId) return;
       if (mapState.pointerMode === 'draw') finishDrawing();
       else if (mapState.pointerMode === 'marker' && mapState.markerDrag) {
-        const marker = mapState.markers.find(
-          (entry) => entry.id === mapState.markerDrag.id,
-        );
-        const changed = mapState.markerDrag.before !== snapshot();
-        mapState.markerDrag = null;
-        mapState.pointerMode = '';
-        if (changed) {
-          pushHistory();
-          renderMapContent();
-          mapUi.status.textContent =
-            'Marcação reposicionada. Use Desfazer para voltar.';
-        } else if (marker) {
-          const detail = marker.label || markerTypes[marker.type]?.name || 'Marcação';
-          mapUi.status.textContent = `${detail}. Arraste para reposicionar.`;
-        }
+        finishMarkerDrag(event);
       } else mapState.pointerMode = '';
+      if (mapState.pointerMode !== 'marker') delete mapUi.viewport.dataset.pointerMode;
       mapState.pointerId = null;
       mapState.startPointer = null;
       mapState.markerDrag = null;
     });
     mapUi.viewport.addEventListener('pointercancel', () => {
       mapState.pointerMode = '';
+      delete mapUi.viewport.dataset.pointerMode;
       mapState.pointerId = null;
       mapState.startPointer = null;
       mapState.draftPoints = [];

@@ -243,11 +243,59 @@
                 ><span>Apagar</span>
               </button>
             </div>
-            <label class="tool-field map-champion-picker"
-              >Campeão da marcação<select id="map-champion-select">
-                <option value="">Selecione um campeão</option>
-              </select></label
-            >
+            <section class="map-champion-picker" aria-labelledby="map-champion-title">
+              <div class="map-picker-heading">
+                <span class="tool-kicker">PERSONAGENS</span>
+                <h3 id="map-champion-title">Adicionar campeão</h3>
+              </div>
+              <div class="map-team-picker" role="group" aria-label="Equipe do campeão">
+                <button type="button" data-champion-team="blue" aria-pressed="true">
+                  Azul
+                </button>
+                <button type="button" data-champion-team="red" aria-pressed="false">
+                  Vermelha
+                </button>
+              </div>
+              <label class="map-champion-search">
+                <span class="map-search-icon" aria-hidden="true"></span>
+                <input
+                  id="map-champion-search"
+                  type="search"
+                  placeholder="Buscar campeão"
+                  autocomplete="off"
+                  aria-label="Buscar campeão pelo nome"
+                />
+                <button
+                  type="button"
+                  id="map-champion-clear"
+                  aria-label="Limpar pesquisa"
+                  hidden
+                >
+                  ×
+                </button>
+              </label>
+              <div
+                id="map-champion-grid"
+                class="map-champion-grid"
+                role="listbox"
+                aria-label="Campeões disponíveis"
+              ></div>
+              <p
+                id="map-champion-empty"
+                class="map-champion-empty"
+                role="status"
+                hidden
+              >
+                Nenhum campeão encontrado.
+              </p>
+              <button type="button" id="map-add-generic" class="map-generic-add">
+                Adicionar personagem genérico
+              </button>
+              <p class="map-picker-hint">
+                Campeões já posicionados aparecem marcados. Selecione novamente para
+                mover.
+              </p>
+            </section>
             <fieldset class="map-layer-controls">
               <legend>Camadas visíveis</legend>
               <label
