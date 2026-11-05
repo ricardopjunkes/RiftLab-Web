@@ -1,0 +1,75 @@
+/* Each route keeps the existing shared app logic, while presenting one clear tool. */
+.page-home .workspace-heading,
+.page-home main.site-main > .content {
+  display: none;
+}
+
+.page-composition main.site-main > :not(.workspace-heading):not(.content),
+.page-draft main.site-main > :not(.workspace-heading):not(.content) {
+  display: none;
+}
+
+.page-composition .content > :not(#builder),
+.page-draft .content > :not(#draft-simulator),
+.page-composition .site-footer,
+.page-draft .site-footer {
+  display: none;
+}
+
+.page-composition .workspace-heading,
+.page-draft .workspace-heading {
+  margin-block: 2rem 1.25rem;
+}
+
+.page-composition .builder-panel,
+.page-draft #draft-simulator {
+  width: 100%;
+  max-width: 100%;
+}
+
+.draft-analyze-compositions {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 46px;
+  margin-top: 1.25rem;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid rgba(194, 255, 71, 0.45);
+  border-radius: 10px;
+  background: linear-gradient(
+    135deg,
+    rgba(194, 255, 71, 0.16),
+    rgba(194, 255, 71, 0.06)
+  );
+  color: #d5ff72;
+  font-weight: 750;
+  text-decoration: none;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.draft-analyze-compositions:hover,
+.draft-analyze-compositions:focus-visible {
+  transform: translateY(-1px);
+  border-color: #c2ff47;
+  background: rgba(194, 255, 71, 0.2);
+}
+
+@media (max-width: 720px) {
+  .page-composition .workspace-heading,
+  .page-draft .workspace-heading {
+    margin-block: 1.25rem 0.75rem;
+  }
+
+  .draft-analyze-compositions {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draft-analyze-compositions {
+    transition: none;
+  }
+}

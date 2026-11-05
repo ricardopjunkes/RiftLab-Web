@@ -74,6 +74,7 @@ async function loadChampions() {
       roles: laneMap[c.id] || inferRole(c.tags),
       ...metrics(c.tags),
     }));
+    loadDraftComparison();
     document.querySelector('.patch').innerHTML =
       `<i></i>Dados oficiais · patch ${patchVersion}`;
     renderGrid();
@@ -1592,6 +1593,32 @@ async function loadSharedComposition() {
     setSaveStatus(`Composição compartilhada carregada · código ${result.code}.`);
   } catch (error) {
     setSaveStatus(error.message || 'Não foi possível carregar a composição.', true);
+  }
+}
+
+function loadDraftComparison() {
+  if (new URLSearchParams(location.search).get('from') !== 'draft') return;
+  try {
+    const saved = JSON.parse(
+      localStorage.getItem('riftlab:draft-comparison') || 'null',
+    );
+    if (!saved || typeof saved !== 'object') return;
+    const toTeam = (picks) =>
+      Object.fromEntries(
+        laneKeys
+          .map((lane) => {
+            const pick = picks?.[lane];
+            const id = typeof pick === 'string' ? pick : pick?.id;
+            return [lane, champions.find((champion) => champion.id === id) || null];
+          })
+          .filter(([, champion]) => champion),
+      );
+    teams = { ally: toTeam(saved.blue), enemy: toTeam(saved.red) };
+    resetEditingComposition();
+    setSaveStatus('Draft carregado. Revise ou ajuste as equipes antes de analisar.');
+    localStorage.removeItem('riftlab:draft-comparison');
+  } catch {
+    setSaveStatus('Não foi possível importar as equipes do draft.', true);
   }
 }
 saveCompositionButton.addEventListener('click', saveComposition);

@@ -153,6 +153,17 @@ async function renderDraftAnalysis() {
     analyzeCompositionTeam(draftState.picks.red),
   ]);
   target.innerHTML = `<div class="synergy-scores">${renderTeamAnalysis(draftState.picks.blue, 'ally', blue)}${renderTeamAnalysis(draftState.picks.red, 'enemy', red)}</div><p class="model-note">Estimativas determinísticas baseadas em atributos, tags oficiais e sinais textuais das habilidades do Data Dragon. Não são taxas de vitória nem previsões do resultado.</p>`;
+  const analyzeButton = document.createElement('a');
+  analyzeButton.className = 'draft-analyze-compositions';
+  analyzeButton.href = './composition-comparator.html?from=draft';
+  analyzeButton.textContent = 'Analisar composição';
+  analyzeButton.addEventListener('click', () => {
+    localStorage.setItem(
+      'riftlab:draft-comparison',
+      JSON.stringify({ blue: draftState.picks.blue, red: draftState.picks.red }),
+    );
+  });
+  target.append(analyzeButton);
 }
 
 function renderDraft() {
