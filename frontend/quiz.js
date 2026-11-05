@@ -345,10 +345,18 @@ quizInput.addEventListener('keydown', (event) => {
 quizSubmit.addEventListener('click', submitAnswer);
 quizNext.addEventListener('click', startNextChallenge);
 document.querySelector('#quiz-reset').addEventListener('click', () => {
-  if (!window.confirm('Zerar toda a pontuação e o histórico deste navegador?')) return;
-  playerStats = emptyStats();
-  localStorage.removeItem(STATS_KEY);
-  renderStats();
+  const dialog = document.querySelector('#quiz-reset-dialog');
+  dialog.addEventListener(
+    'close',
+    () => {
+      if (dialog.returnValue !== 'confirm') return;
+      playerStats = emptyStats();
+      localStorage.removeItem(STATS_KEY);
+      renderStats();
+    },
+    { once: true },
+  );
+  dialog.showModal();
 });
 
 renderStats();

@@ -558,7 +558,16 @@
               </select>
             </div>
             <div class="roles" id="roles"></div>
-            <div class="grid" id="grid"></div>
+            <div class="grid" id="grid" aria-live="polite" aria-busy="true">
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+            </div>
           </section>
         </div>
       </main>
@@ -680,6 +689,17 @@
       </form>
     </dialog>
     <div class="toast" id="toast"></div>
+    <dialog class="app-confirm-dialog" id="app-confirm-dialog">
+      <form method="dialog">
+        <span class="eyebrow">Confirmação</span>
+        <h2 id="app-confirm-title">Confirmar ação</h2>
+        <p id="app-confirm-message"></p>
+        <div class="app-confirm-actions">
+          <button value="cancel">Cancelar</button>
+          <button class="danger" value="confirm">Confirmar</button>
+        </div>
+      </form>
+    </dialog>
     <script src="./config.js"></script>
     <script src="./app.js"></script>
     <script src="./draft-explorer.js"></script>

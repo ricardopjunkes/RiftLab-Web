@@ -54,6 +54,7 @@ function metrics(tags) {
   return { p, m, c };
 }
 async function loadChampions() {
+  grid.setAttribute('aria-busy', 'true');
   try {
     const versions = await fetch(
       'https://ddragon.leagueoflegends.com/api/versions.json',
@@ -76,6 +77,7 @@ async function loadChampions() {
     document.querySelector('.patch').innerHTML =
       `<i></i>Dados oficiais · patch ${patchVersion}`;
     renderGrid();
+    grid.setAttribute('aria-busy', 'false');
     renderTeam();
     window.dispatchEvent(
       new CustomEvent('riftlab:champions-ready', {
@@ -85,6 +87,7 @@ async function loadChampions() {
     if (document.querySelector('#picker-dialog').open) renderPickerResults();
     await loadSharedComposition();
   } catch (e) {
+    grid.setAttribute('aria-busy', 'false');
     document.querySelector('.patch').innerHTML =
       '<i></i>Não foi possível carregar os dados';
     grid.innerHTML =
