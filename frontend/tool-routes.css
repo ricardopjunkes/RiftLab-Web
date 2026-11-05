@@ -5,14 +5,23 @@
 }
 
 .page-composition main.site-main > :not(.workspace-heading):not(.content),
-.page-draft main.site-main > :not(.workspace-heading):not(.content) {
+.page-draft main.site-main > :not(.workspace-heading):not(.content),
+.page-simulation main.site-main > :not(.workspace-heading):not(.content),
+.page-champions main.site-main > :not(.workspace-heading):not(.content),
+.page-matchup-explorer main.site-main > :not(.workspace-heading):not(.content) {
   display: none;
 }
 
 .page-composition .content > :not(#builder),
 .page-draft .content > :not(#draft-simulator),
+.page-simulation .content > :not(#builder):not(#simulator),
+.page-champions .content > :not(#guide),
+.page-matchup-explorer .content > :not(#matchup-explorer),
 .page-composition .site-footer,
-.page-draft .site-footer {
+.page-draft .site-footer,
+.page-simulation .site-footer,
+.page-champions .site-footer,
+.page-matchup-explorer .site-footer {
   display: none;
 }
 
@@ -23,6 +32,18 @@
 
 .page-composition .builder-panel,
 .page-draft #draft-simulator {
+  width: 100%;
+  max-width: 100%;
+}
+
+.page-simulation .builder-panel,
+.page-simulation #simulator {
+  width: 100%;
+  max-width: 100%;
+}
+
+.page-champions .roster,
+.page-matchup-explorer .matchup-explorer {
   width: 100%;
   max-width: 100%;
 }

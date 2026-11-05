@@ -828,7 +828,7 @@
 .map-viewport {
   position: relative;
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 1200 / 798;
   overflow: hidden;
   border: 1px solid #354b61;
   border-radius: 11px;
@@ -865,8 +865,8 @@
   height: 100%;
 }
 .map-canvas > img {
-  object-fit: cover;
-  filter: brightness(1.24) contrast(1.08) saturate(0.9);
+  object-fit: fill;
+  filter: brightness(1.08) contrast(1.04) saturate(0.96);
   pointer-events: none;
 }
 #map-routes {
@@ -898,12 +898,40 @@
 #map-region-labels text {
   fill: rgb(239 244 250 / 92%);
   font-family: Inter, Arial, sans-serif;
-  font-size: 19px;
+  font-size: 15px;
   font-weight: 800;
   paint-order: stroke;
   stroke: rgb(5 11 18 / 88%);
   stroke-width: 5px;
   letter-spacing: 1.5px;
+}
+.map-marker.layer-hidden,
+#map-routes .layer-hidden {
+  display: none;
+}
+.map-layer-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem 0.7rem;
+  margin: 1rem 0 0;
+  padding: 0.75rem;
+  border: 1px solid var(--line, #243345);
+  border-radius: 10px;
+}
+.map-layer-controls legend {
+  padding: 0 0.3rem;
+  color: var(--muted, #a9b6c4);
+  font-size: 0.75rem;
+}
+.map-layer-controls label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text, #e7edf4);
+  font-size: 0.73rem;
+}
+.map-layer-controls input {
+  accent-color: var(--lime, #c2ff47);
 }
 #map-region-labels.hidden {
   display: none;

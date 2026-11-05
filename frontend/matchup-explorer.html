@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#080c14" />
+    <title>Matchup Explorer — Rift Lab</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./theme.css" />
+    <link rel="stylesheet" href="./tool-routes.css" />
+  </head>
+  <body class="page-matchup-explorer">
+    <div class="shell" id="top">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brandmark">✦</div>
+          rift<em>lab</em>
+        </div>
+        <nav class="nav" aria-label="Navegação principal">
+          <a class="active" href="#tools" data-view="tools">Início</a>
+          <details class="nav-group">
+            <summary>Campeões</summary>
+            <div class="nav-dropdown">
+              <a href="./champions.html">Galeria e guia</a
+              ><a href="./matchup-explorer.html">Matchup Explorer</a>
+            </div>
+          </details>
+          <details class="nav-group">
+            <summary>Estratégia</summary>
+            <div class="nav-dropdown">
+              <a href="./composition-comparator.html">Comparador de Composições</a
+              ><a href="./draft-simulator.html">Draft Simulator</a
+              ><a href="./build-lab.html">Build Lab</a
+              ><a href="./build-comparator.html">Build Comparator</a
+              ><a href="./rune-lab.html">Rune Lab</a>
+            </div>
+          </details>
+          <details class="nav-group">
+            <summary>Simulações</summary>
+            <div class="nav-dropdown">
+              <a href="./simulation.html">Simulação de partidas</a>
+              <a href="./rift-map.html">Rift Map</a>
+            </div>
+          </details>
+          <details class="nav-group">
+            <summary>Academia</summary>
+            <div class="nav-dropdown">
+              <a href="./quiz.html">Adivinhe o Campeão</a
+              ><a href="./academy.html">Desafios e Academy</a>
+            </div>
+          </details>
+        </nav>
+        <div class="topright">ESTRATÉGIA PARA O RIFT</div>
+      </header>
+      <main class="site-main">
+        <section class="landing-hero" aria-labelledby="landing-title">
+          <div class="landing-copy">
+            <div class="eyebrow">
+              <span class="eyebrow-mark"></span>Planeje. Escolha. Domine.
+            </div>
+            <h1 id="landing-title"><span>RIFT</span> LAB</h1>
+            <p class="landing-tagline">A estratégia começa antes do primeiro abate.</p>
+            <p class="landing-description">
+              Um laboratório de League of Legends para explorar campeões, construir
+              composições e entender melhor cada decisão antes de entrar no Rift.
+            </p>
+            <div class="landing-actions">
+              <a class="button-primary" href="#tools"
+                >Explorar ferramentas <span aria-hidden="true">↗</span></a
+              >
+              <a class="button-secondary" href="./champions.html">Conhecer campeões</a>
+            </div>
+            <div class="landing-meta">
+              <span class="patch"><i></i>Carregando dados oficiais</span>
+              <span class="landing-meta-note">Feito para quem pensa o jogo.</span>
+            </div>
+          </div>
+          <div class="rift-visual" aria-hidden="true">
+            <div class="rift-visual-glow"></div>
+            <svg
+              class="rift-map"
+              viewBox="0 0 540 500"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                class="map-border"
+                d="M91 416 113 155 334 62 455 159 431 394 214 457 91 416Z"
+              />
+              <path
+                class="map-lane"
+                d="M119 386 365 119M162 422 415 178M107 206 405 354"
+              />
+              <path class="map-river" d="m112 287 95-54 76 31 53-89 74-31" />
+              <path
+                class="map-jungle"
+                d="m163 275 45-29m42 70 34-20m56-52 39 26m-171 75 41-11m78-175 20 27"
+              />
+              <path class="map-route" d="M119 386 365 119M162 422 415 178" />
+              <circle class="map-node node-blue" cx="122" cy="383" r="11" />
+              <circle class="map-node node-blue" cx="204" cy="295" r="8" />
+              <circle class="map-node node-blue" cx="289" cy="207" r="8" />
+              <circle class="map-node node-red" cx="416" cy="179" r="11" />
+              <circle class="map-node node-red" cx="331" cy="267" r="8" />
+              <circle class="map-node node-red" cx="245" cy="356" r="8" />
+              <circle class="map-objective" cx="281" cy="263" r="20" />
+              <circle class="map-objective-core" cx="281" cy="263" r="5" />
+              <path class="map-mark" d="m262 82 17-10 17 10v20l-17 10-17-10V82Z" />
+              <path class="map-mark" d="m389 377 17-10 17 10v20l-17 10-17-10v-20Z" />
+            </svg>
+            <div class="rift-visual-label label-top"><span></span> VISÃO DE JOGO</div>
+            <div class="rift-visual-label label-bottom">
+              SUMMONER’S RIFT <span>·</span> PLANEJE SEU PRÓXIMO MOVIMENTO
+            </div>
+          </div>
+        </section>
+
+        <section class="landing-tools" id="tools" aria-labelledby="tools-title">
+          <div class="landing-section-heading">
+            <div>
+              <div class="eyebrow">Seu centro de estratégia</div>
+              <h2 id="tools-title">Tudo para pensar o jogo.</h2>
+            </div>
+            <p>
+              Ferramentas para preparar o draft, explorar possibilidades e aprender a
+              cada partida.
+            </p>
+          </div>
+          <div class="tool-grid">
+            <a class="tool-card" href="./champions.html">
+              <span class="tool-icon" aria-hidden="true"
+                ><svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="8" r="4" />
+                  <path
+                    d="M4 21a8 8 0 0 1 16 0M18 4.5a3.5 3.5 0 0 1 0 7M20 15a6 6 0 0 1 3 5"
+                  /></svg
+              ></span>
+              <span class="tool-card-title">Campeões</span
+              ><span class="tool-card-desc"
+                >Explore o elenco, as rotas e os dados de cada campeão.</span
+              ><span class="tool-card-link">Explorar campeões <b>↗</b></span>
+            </a>
+            <a class="tool-card" href="./composition-comparator.html">
+              <span class="tool-icon" aria-hidden="true"
+                ><svg viewBox="0 0 24 24">
+                  <path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8m0-12.8L5.6 18.4" />
+                  <circle cx="12" cy="12" r="8" /></svg
+              ></span>
+              <span class="tool-card-title">Composições</span
+              ><span class="tool-card-desc"
+                >Monte equipes por rota e veja sinergias e confrontos.</span
+              ><span class="tool-card-link">Montar composição <b>↗</b></span>
+            </a>
+            <a class="tool-card" href="./draft-simulator.html">
+              <span class="tool-icon" aria-hidden="true"
+                ><svg viewBox="0 0 24 24">
+                  <path d="M4 5h16M4 12h10M4 19h7M17 10v8m-3-3 3 3 3-3" /></svg
+              ></span>
+              <span class="tool-card-title">Draft Simulator</span
+              ><span class="tool-card-desc"
+                >Pratique bans e escolhas em uma ordem competitiva.</span
+              ><span class="tool-card-link">Simular um draft <b>↗</b></span>
+            </a>
+            <a class="tool-card" href="./matchup-explorer.html">
+              <span class="tool-icon" aria-hidden="true"
+                ><svg viewBox="0 0 24 24">
+                  <circle cx="8" cy="12" r="5" />
+                  <circle cx="16" cy="12" r="5" />
+                  <path d="m10 12 2-2 2 2-2 2-2-2Z" /></svg
+              ></span>
+              <span class="tool-card-title">Matchup Explorer</span
+              ><span class="tool-card-desc"
+                >Compare atributos e ferramentas de dois campeões.</span
+              ><span class="tool-card-link">Explorar matchup <b>↗</b></span>
+            </a>
+            <a class="tool-card" href="./build-lab.html" aria-label="Abrir Build Lab">
+              <span class="tool-icon" aria-hidden="true"
+                ><svg viewBox="0 0 24 24">
+                  <path
+                    d="m14 6 4 4M4 20l4-.8L19 8a2.8 2.8 0 0 0-4-4L4 15l-.8 5ZM4 4h5M4 8h3M15 20h5M17 16h3"
+                  /></svg
+              ></span>
+              <span class="tool-card-title">Build Lab</span
+              ><span class="tool-card-desc"
+                >Monte builds com itens oficiais e confira seus atributos.</span
+              ><span class="tool-card-link">Criar uma build <b>↗</b></span>
+            </a>
+            <a class="tool-card" href="./build-comparator.html">
+              <span class="tool-icon" aria-hidden="true"
+                ><svg viewBox="0 0 24 24">
+                  <path d="M4 5h7v14H4zM13 5h7v14h-7zM7 9h1m8 0h1M7 15h1m8 0h1" /></svg
+              ></span>
+              <span class="tool-card-title">Build Comparator</span
+              ><span class="tool-card-desc"
+                >Compare itens, atributos e custos de duas builds lado a lado.</span
+              ><span class="tool-card-link">Comparar builds <b>↗</b></span>
+            </a>
+            <a class="tool-card" href="./rune-lab.html">
+              <span class="tool-icon" aria-hidden="true"
+                ><svg viewBox="0 0 24 24">
+                  <path
+                    d="m12 2 2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2L12 2Z"
+                  />
+                  <circle cx="12" cy="11" r="2" /></svg
+              ></span>
+              <span class="tool-card-title">Rune Lab</span
+              ><span class="tool-card-desc"
+                >Monte, salve e organize páginas de runas com dados oficiais.</span
+              ><span class="tool-card-link">Criar página de runas <b>↗</b></span>
+            </a>
+            <a class="tool-card" href="./rift-map.html">
+              <span class="tool-icon" aria-hidden="true"
+                ><svg viewBox="0 0 24 24">
+                  <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z" />
+                  <path d="M9 3v15m6-12v15M6 9h.01m12 6h.01" /></svg
+              ></span>
+              <span class="tool-card-title">Rift Map</span
+              ><span class="tool-card-desc"
+                >Planeje visão, rotas e objetivos no mapa de Summoner’s Rift.</span
+              ><span class="tool-card-link">Abrir mesa tática <b>↗</b></span>
+            </a>
+            <a class="tool-card" href="./simulation.html">
+              <span class="tool-icon" aria-hidden="true"
+                ><svg viewBox="0 0 24 24">
+                  <path d="M3 5h18v14H3zM3 9h18M8 5v4m8-4v4M7 14h3m4 0h3" />
+                  <circle cx="12" cy="16" r="1" /></svg
+              ></span>
+              <span class="tool-card-title">Simulação de partidas</span
+              ><span class="tool-card-desc"
+                >Acompanhe uma partida didática com eventos e objetivos.</span
+              ><span class="tool-card-link">Simular partida <b>↗</b></span>
+            </a>
+            <a class="tool-card" href="./quiz.html">
+              <span class="tool-icon" aria-hidden="true"
+                ><svg viewBox="0 0 24 24">
+                  <path
+                    d="M9.5 9a2.7 2.7 0 1 1 4.7 1.8c-1.1 1.1-2.2 1.4-2.2 3.2M12 18h.01"
+                  />
+                  <circle cx="12" cy="12" r="9" /></svg
+              ></span>
+              <span class="tool-card-title">Adivinhe o Campeão</span
+              ><span class="tool-card-desc"
+                >Teste seu conhecimento com pistas de habilidades.</span
+              ><span class="tool-card-link">Começar desafio <b>↗</b></span>
+            </a>
+            <a class="tool-card" href="./academy.html">
+              <span class="tool-icon" aria-hidden="true"
+                ><svg viewBox="0 0 24 24">
+                  <path d="m2 9 10-5 10 5-10 5L2 9Z" />
+                  <path d="M6 11v5c3.5 3 8.5 3 12 0v-5m4-2v7" /></svg
+              ></span>
+              <span class="tool-card-title">Rift Lab Academy</span
+              ><span class="tool-card-desc"
+                >Aprenda sobre campeões, habilidades e decisões.</span
+              ><span class="tool-card-link">Acessar Academy <b>↗</b></span>
+            </a>
+          </div>
+        </section>
+
+        <section
+          class="landing-featured"
+          id="featured"
+          aria-labelledby="featured-title"
+        >
+          <div class="landing-section-heading">
+            <div>
+              <div class="eyebrow">Mais que um guia</div>
+              <h2 id="featured-title">Prepare cada decisão.</h2>
+            </div>
+            <p>
+              Do primeiro pick ao último objetivo, use o Rift Lab para enxergar o jogo
+              por outros ângulos.
+            </p>
+          </div>
+          <div class="featured-grid">
+            <article class="featured-card featured-draft">
+              <div class="featured-art draft-art" aria-hidden="true">
+                <span class="draft-chip blue-chip">TOP</span
+                ><span class="draft-chip red-chip">JNG</span
+                ><span class="draft-line"></span><span class="draft-core">VS</span>
+              </div>
+              <div class="featured-copy">
+                <div class="eyebrow">Picks com propósito</div>
+                <h3>Um draft é mais que cinco campeões.</h3>
+                <p>
+                  Monte composições, cubra rotas e pense em como cada escolha se encaixa
+                  no plano do time.
+                </p>
+                <a href="./composition-comparator.html"
+                  >Montar uma equipe <span aria-hidden="true">↗</span></a
+                >
+              </div>
+            </article>
+            <article class="featured-card featured-matchup">
+              <div class="featured-art matchup-art" aria-hidden="true">
+                <span class="matchup-orb orb-a">A</span
+                ><span class="matchup-orb orb-b">B</span
+                ><span class="matchup-link"></span
+                ><span class="matchup-stat">EARLY <i>↗</i></span
+                ><span class="matchup-stat">TEAM FIGHT <i>◆</i></span>
+              </div>
+              <div class="featured-copy">
+                <div class="eyebrow">Compare com contexto</div>
+                <h3>Entenda o que muda em cada rota.</h3>
+                <p>
+                  Coloque campeões lado a lado e explore atributos, habilidades e sinais
+                  de jogo por fase.
+                </p>
+                <a href="./matchup-explorer.html"
+                  >Comparar campeões <span aria-hidden="true">↗</span></a
+                >
+              </div>
+            </article>
+            <article class="featured-card featured-learn">
+              <div class="featured-art learn-art" aria-hidden="true">
+                <span class="learn-rune">✦</span
+                ><span class="learn-ring ring-one"></span
+                ><span class="learn-ring ring-two"></span
+                ><span class="learn-star star-one">✧</span
+                ><span class="learn-star star-two">✧</span>
+              </div>
+              <div class="featured-copy">
+                <div class="eyebrow">Aprenda jogando</div>
+                <h3>Conhecimento também vence partidas.</h3>
+                <p>
+                  Relembre habilidades, identifique campeões e acompanhe seu progresso
+                  na Academy.
+                </p>
+                <a href="./academy.html"
+                  >Conhecer a Academy <span aria-hidden="true">↗</span></a
+                >
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <div class="workspace-heading" id="workspace">
+          <div class="eyebrow">Mãos à obra</div>
+          <h2>Entre no laboratório.</h2>
+          <p>Escolha uma ferramenta e comece a explorar.</p>
+        </div>
+        <div class="content">
+          <section class="panel builder-panel" id="builder">
+            <div class="builder-heading">
+              <div>
+                <div class="eyebrow">Monte o draft</div>
+                <h2>Compare as composições</h2>
+              </div>
+              <span class="count" id="count">0 / 5 · 0 / 5</span>
+            </div>
+            <p class="builder-sub">
+              Clique em um campeão, escolha a rota e adicione à sua equipe ou à equipe
+              adversária.
+            </p>
+            <div class="team-columns">
+              <section class="team-card">
+                <h3>Sua equipe <span>AZUL</span></h3>
+                <div class="team-slots" id="ally-slots"></div>
+              </section>
+              <section class="team-card enemy">
+                <h3>Adversário <span>VERMELHO</span></h3>
+                <div class="team-slots" id="enemy-slots"></div>
+              </section>
+            </div>
+            <section class="matchup-panel">
+              <div class="eyebrow">Confrontos por rota</div>
+              <div id="matchups"></div>
+              <p class="note">
+                O link abre a lista de confrontos do seu campeão no OP.GG. Confira o
+                adversário e ajuste os filtros para BR, Todas as ligas e patch atual. O
+                RiftLab não importa os percentuais do OP.GG.
+              </p>
+            </section>
+            <section class="synergy-panel" id="composition-analysis" aria-live="polite">
+              <div class="synergy-heading">
+                <div>
+                  <div class="eyebrow">Leitura do draft</div>
+                  <h3>Análise e sinergia das equipes</h3>
+                </div>
+                <span class="estimate-badge"
+                  >Estimativa baseada nos dados do campeão</span
+                >
+              </div>
+              <div id="synergy-analysis">
+                <p class="note">
+                  Monte ao menos uma equipe para ver sua análise de composição.
+                </p>
+              </div>
+            </section>
+            <button class="clear" id="clear">Limpar as duas equipes</button>
+            <div class="save-tools">
+              <button
+                class="save-composition-button"
+                id="save-local-composition"
+                type="button"
+              >
+                Salvar composição
+              </button>
+              <button
+                class="save-composition-button"
+                id="save-composition"
+                type="button"
+              >
+                Salvar e compartilhar composição</button
+              ><span id="save-status" role="status" aria-live="polite"></span>
+            </div>
+            <section class="composition-history" aria-labelledby="history-title">
+              <div class="history-heading">
+                <div>
+                  <div class="eyebrow">Neste navegador</div>
+                  <h3 id="history-title">Minhas composições</h3>
+                </div>
+                <span id="history-status" role="status" aria-live="polite"></span>
+              </div>
+              <div id="composition-history-list"></div>
+            </section>
+          </section>
+          <section class="panel strategy-tool" id="draft-simulator">
+            <div class="gallery-heading">
+              <div>
+                <div class="eyebrow">Estratégia · seleção competitiva</div>
+                <h2>Draft Simulator</h2>
+                <p>
+                  Alterne bans e escolhas na ordem de um draft competitivo. Defina a
+                  rota de cada escolha para completar as duas equipes.
+                </p>
+              </div>
+              <span class="estimate-badge"
+                >Ordem: 6 bans · 6 escolhas · 4 bans · 4 escolhas</span
+              >
+            </div>
+            <div class="draft-layout">
+              <div class="draft-team blue">
+                <h3>Equipe Azul</h3>
+                <div id="draft-blue-lineup" class="draft-lineup"></div>
+              </div>
+              <div class="draft-control panel">
+                <div class="eyebrow">Turno atual</div>
+                <div id="draft-turn" class="draft-turn" aria-live="polite">
+                  Carregando campeões…
+                </div>
+                <label id="draft-position-wrap" for="draft-position"
+                  >Rota desta escolha</label
+                >
+                <select id="draft-position" class="select"></select>
+                <button id="draft-action" type="button" disabled>
+                  Carregando campeões…
+                </button>
+                <button id="draft-reset" class="clear" type="button">
+                  Reiniciar draft
+                </button>
+                <p class="note">
+                  Sugestões consideram rota disponível, classes e equilíbrio de
+                  atributos da composição. Não representam counters nem previsão de
+                  vitória.
+                </p>
+              </div>
+              <div class="draft-team red">
+                <h3>Equipe Vermelha</h3>
+                <div id="draft-red-lineup" class="draft-lineup"></div>
+              </div>
+            </div>
+            <section class="draft-bans-panel">
+              <h3>Campeões banidos</h3>
+              <div id="draft-bans" class="draft-bans"></div>
+            </section>
+            <section class="draft-suggestions-panel">
+              <h3>Sugestões para a próxima escolha</h3>
+              <p id="draft-suggestions-note" class="note">
+                Sugestões serão exibidas nos turnos de escolha.
+              </p>
+              <div id="draft-suggestions" class="draft-suggestions"></div>
+            </section>
+            <section id="draft-analysis" class="draft-analysis" aria-live="polite">
+              <p class="note">
+                Finalize as dez escolhas para ver a análise das duas composições.
+              </p>
+            </section>
+          </section>
+          <section class="panel strategy-tool matchup-explorer" id="matchup-explorer">
+            <div class="gallery-heading">
+              <div>
+                <div class="eyebrow">Campeões · comparação transparente</div>
+                <h2>Matchup Explorer</h2>
+                <p>
+                  Compare atributos oficiais e sinais encontrados nas habilidades para
+                  entender o que pode pesar em cada etapa.
+                </p>
+              </div>
+              <span class="estimate-badge">Sem winrates inventadas</span>
+            </div>
+            <div class="matchup-explorer-controls">
+              <label
+                >Campeão 1<select id="matchup-champion-a" class="select">
+                  <option value="">Selecione um campeão</option>
+                </select></label
+              >
+              <label
+                >Campeão 2<select id="matchup-champion-b" class="select">
+                  <option value="">Selecione um campeão</option>
+                </select></label
+              >
+              <label
+                >Rota<select id="matchup-lane" class="select">
+                  <option>Topo</option>
+                  <option>Selva</option>
+                  <option>Meio</option>
+                  <option>Atirador</option>
+                  <option>Suporte</option>
+                </select></label
+              >
+              <button id="matchup-compare" type="button" disabled>
+                Comparar campeões
+              </button>
+            </div>
+            <div id="matchup-results" class="matchup-results" aria-live="polite">
+              <p class="note">
+                Escolha dois campeões para comparar seus atributos, habilidades e
+                indicadores por fase.
+              </p>
+            </div>
+            <p class="model-note">
+              Fonte: atributos, rotas sugeridas e descrições oficiais do Data Dragon no
+              patch atual. Mobilidade, controle e outras ferramentas são identificados
+              por palavras nas descrições, e a leitura por fase é uma heurística do Rift
+              Lab. A dificuldade do confronto e taxas de vitória exigem dados de
+              partidas que esta página não possui.
+            </p>
+          </section>
+          <section class="panel simulation-panel" id="simulator">
+            <div class="sim-heading">
+              <div>
+                <div class="eyebrow">Uma partida, minuto a minuto</div>
+                <h2>Simule a partida</h2>
+                <p>
+                  Veja os dez campeões ocuparem suas rotas, rotacionarem para objetivos
+                  e disputarem lutas no mapa.
+                </p>
+              </div>
+              <button id="simulate" disabled>Complete as duas equipes</button>
+            </div>
+            <div class="sim-result" id="simulation-result" aria-live="polite">
+              <div class="sim-empty">
+                Monte as duas equipes com cinco campeões para liberar a simulação.
+              </div>
+            </div>
+            <p class="sim-disclaimer">
+              Simulação recreativa: usa os atributos e classes dos campeões, com
+              movimentação, economia, níveis e pressão de ondas em um modelo didático. O
+              resultado é estimado e não reproduz partidas profissionais nem usa taxas
+              do OP.GG.
+            </p>
+          </section>
+          <section class="panel roster" id="guide">
+            <div class="gallery-heading">
+              <div>
+                <div class="eyebrow">Data Dragon · patch atual</div>
+                <h2>Galeria de campeões</h2>
+                <p>
+                  Explore o elenco, filtre por rota, classe ou dificuldade e abra o guia
+                  completo.
+                </p>
+              </div>
+              <span class="count" id="champion-count"></span>
+            </div>
+            <div class="toolbar">
+              <label class="search"
+                ><span>⌕</span
+                ><input
+                  id="search"
+                  placeholder="Buscar campeão..."
+                  autocomplete="off" /></label
+              ><select class="select" id="class-filter" aria-label="Filtrar por classe">
+                <option value="Todas">Todas as classes</option>
+                <option value="Fighter">Lutador</option>
+                <option value="Tank">Tanque</option>
+                <option value="Mage">Mago</option>
+                <option value="Assassin">Assassino</option>
+                <option value="Marksman">Atirador</option>
+                <option value="Support">Suporte</option></select
+              ><select
+                class="select"
+                id="difficulty-filter"
+                aria-label="Filtrar por dificuldade"
+              >
+                <option value="Todas">Todas as dificuldades</option>
+                <option value="easy">Fácil</option>
+                <option value="medium">Intermediária</option>
+                <option value="hard">Difícil</option></select
+              ><select class="select" id="sort">
+                <option value="az">Nome: A–Z</option>
+                <option value="role">Função</option>
+              </select>
+            </div>
+            <div class="roles" id="roles"></div>
+            <div class="grid" id="grid" aria-live="polite" aria-busy="true">
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+              <article class="champ champion-skeleton" aria-hidden="true"></article>
+            </div>
+          </section>
+        </div>
+      </main>
+      <footer class="site-footer" id="about">
+        <div class="footer-main">
+          <div class="footer-brand-block">
+            <a class="brand" href="#top" aria-label="Rift Lab, início"
+              ><span class="brandmark">✦</span><span>RIFT<em>LAB</em></span></a
+            >
+            <p>
+              Um laboratório independente para explorar League of Legends com
+              curiosidade, estratégia e dados.
+            </p>
+            <span class="footer-disclaimer"
+              >Rift Lab não é afiliado nem endossado pela Riot Games.</span
+            >
+          </div>
+          <div class="footer-links">
+            <h3>Explore</h3>
+            <a href="#tools">Ferramentas</a><a href="./champions.html">Campeões</a
+            ><a href="./composition-comparator.html">Comparador de Composições</a
+            ><a href="./draft-simulator.html">Draft Simulator</a>
+          </div>
+          <div class="footer-links">
+            <h3>Aprenda</h3>
+            <a href="./matchup-explorer.html">Matchup Explorer</a
+            ><a href="./simulation.html">Simulação</a
+            ><a href="./quiz.html">Adivinhe o Campeão</a
+            ><a href="./academy.html">Rift Lab Academy</a>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© Rift Lab · Projeto independente de comunidade</span
+          ><span>Dados de campeões via Riot Games Data Dragon.</span>
+        </div>
+      </footer>
+    </div>
+    <dialog id="picker-dialog">
+      <div class="dialog-head">
+        <strong>Escolha um campeão</strong
+        ><button
+          onclick="document.querySelector('#picker-dialog').close()"
+          aria-label="Fechar"
+        >
+          ×
+        </button>
+      </div>
+      <div class="picker-context" id="picker-context">Buscando para a rota</div>
+      <label class="picker-search"
+        ><span>⌕</span
+        ><input
+          id="picker-search"
+          type="search"
+          placeholder="Digite o nome do campeão..."
+          autocomplete="off"
+      /></label>
+      <div class="picker-results" id="picker-results"></div>
+    </dialog>
+    <dialog id="draft-picker-dialog">
+      <div class="dialog-head">
+        <strong id="draft-picker-title">Escolha um campeão</strong
+        ><button id="draft-picker-close" type="button" aria-label="Fechar">×</button>
+      </div>
+      <label class="picker-search"
+        ><span>⌕</span
+        ><input
+          id="draft-picker-search"
+          type="search"
+          placeholder="Buscar campeão..."
+          autocomplete="off"
+      /></label>
+      <div id="draft-picker-results" class="picker-results"></div>
+    </dialog>
+    <dialog id="champion-dialog">
+      <div class="dialog-head">
+        <strong>Guia do campeão</strong
+        ><button
+          onclick="document.querySelector('#champion-dialog').close()"
+          aria-label="Fechar"
+        >
+          ×
+        </button>
+      </div>
+      <div class="detail-content" id="detail-content"></div>
+      <div class="pick-actions">
+        <label for="position-select">Rota desta escolha</label
+        ><select id="position-select">
+          <option value="Topo">Topo</option>
+          <option value="Selva">Selva</option>
+          <option value="Meio">Meio</option>
+          <option value="Atirador">Atirador</option>
+          <option value="Suporte">Suporte</option>
+        </select>
+        <div>
+          <button id="add-ally">Adicionar à minha equipe</button
+          ><button id="add-enemy">Adicionar ao adversário</button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="composition-name-dialog" class="composition-dialog">
+      <form method="dialog" id="composition-name-form">
+        <h2 id="composition-name-title">Salvar composição</h2>
+        <label for="composition-name-input">Nome</label>
+        <input id="composition-name-input" maxlength="60" required />
+        <div class="composition-dialog-actions">
+          <button value="cancel" formnovalidate>Cancelar</button>
+          <button class="primary" value="save">Salvar</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="composition-confirm-dialog" class="composition-dialog">
+      <form method="dialog">
+        <h2>Excluir composição?</h2>
+        <p id="composition-confirm-message"></p>
+        <div class="composition-dialog-actions">
+          <button value="cancel" formnovalidate>Cancelar</button>
+          <button class="danger" value="confirm">Excluir</button>
+        </div>
+      </form>
+    </dialog>
+    <div class="toast" id="toast"></div>
+    <dialog class="app-confirm-dialog" id="app-confirm-dialog">
+      <form method="dialog">
+        <span class="eyebrow">Confirmação</span>
+        <h2 id="app-confirm-title">Confirmar ação</h2>
+        <p id="app-confirm-message"></p>
+        <div class="app-confirm-actions">
+          <button value="cancel">Cancelar</button>
+          <button class="danger" value="confirm">Confirmar</button>
+        </div>
+      </form>
+    </dialog>
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+    <script src="./draft-explorer.js"></script>
+  </body>
+</html>

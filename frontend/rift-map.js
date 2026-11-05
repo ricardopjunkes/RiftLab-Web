@@ -1,4 +1,5 @@
 const MAP_STORAGE_KEY = 'riftlab-rift-map-strategies-v1';
+const MAP_COORDINATE_VERSION = 3;
 const markerTypes = {
   'ward-ally': { name: 'Ward aliada', glyph: 'W', className: 'ally' },
   'ward-control': { name: 'Control ward', glyph: 'C', className: 'control' },
@@ -12,17 +13,24 @@ const markerTypes = {
   'champ-red': { name: 'Campeão vermelho', glyph: '●', className: 'champ-red' },
 };
 const regionLabels = [
-  ['TOPO', 500, 100],
-  ['MEIO', 500, 500],
-  ['ROTA INFERIOR', 500, 900],
-  ['SELVA SUPERIOR', 270, 280],
-  ['SELVA INFERIOR', 730, 720],
-  ['RIO', 530, 420],
-  ['BARÃO', 650, 240],
-  ['DRAGÃO', 365, 760],
-  ['BASE AZUL', 120, 865],
-  ['BASE VERMELHA', 865, 135],
+  ['TOPO', 500, 95],
+  ['MEIO', 505, 490],
+  ['ROTA INFERIOR', 520, 890],
+  ['SELVA AZUL', 275, 700],
+  ['SELVA VERMELHA', 720, 300],
+  ['RIO', 530, 495],
+  ['BARÃO', 390, 285],
+  ['DRAGÃO', 620, 520],
+  ['BASE AZUL', 145, 835],
+  ['BASE VERMELHA', 755, 120],
 ];
+const layerState = {
+  blue: true,
+  red: true,
+  vision: true,
+  objectives: true,
+  routes: true,
+};
 const mapUi = {
   status: document.querySelector('#map-status'),
   patch: document.querySelector('#map-patch'),
@@ -165,11 +173,11 @@ function renderMapContent() {
       .map((route) => {
         const cls = route.team === 'red' ? 'route-red' : 'route-blue';
         const arrow = route.arrow ? ' marker-end="url(#map-arrow)"' : '';
-        return `<path class="${cls}" d="${svgPath(route.points)}"${arrow}></path>`;
+        return `<path class="${cls} ${layerState.routes ? '' : 'layer-hidden'}" data-layer="routes" d="${svgPath(route.points)}"${arrow}></path>`;
       })
       .join('') +
     (mapState.draftPoints.length > 1
-      ? `<path class="${mapState.tool.endsWith('red') ? 'route-red' : 'route-blue'} draft-route" d="${svgPath(mapState.draftPoints)}"></path>`
+      ? `<path class="${mapState.tool.endsWith('red') ? 'route-red' : 'route-blue'} draft-route ${layerState.routes ? '' : 'layer-hidden'}" data-layer="routes" d="${svgPath(mapState.draftPoints)}"></path>`
       : '');
   mapUi.markers.innerHTML = mapState.markers
     .map((marker) => {
@@ -178,7 +186,8 @@ function renderMapContent() {
         glyph: '•',
         className: 'interest',
       };
-      return `<button type="button" class="map-marker ${data.className}" style="left:${marker.x * 100}%;top:${marker.y * 100}%" data-marker-id="${escapeMap(marker.id)}" aria-label="${escapeMap(data.name)}${marker.label ? `: ${escapeMap(marker.label)}` : ''}" title="${escapeMap(data.name)}${marker.label ? ` · ${escapeMap(marker.label)}` : ''}"><span>${data.glyph}</span></button>`;
+      const layer = markerLayer(marker.type, data.className);
+      return `<button type="button" class="map-marker ${data.className} ${layerState[layer] ? '' : 'layer-hidden'}" data-layer="${layer}" style="left:${marker.x * 100}%;top:${marker.y * 100}%" data-marker-id="${escapeMap(marker.id)}" aria-label="${escapeMap(data.name)}${marker.label ? `: ${escapeMap(marker.label)}` : ''}" title="${escapeMap(data.name)}${marker.label ? ` · ${escapeMap(marker.label)}` : ''}"><span>${data.glyph}</span></button>`;
     })
     .join('');
   mapUi.markers.querySelectorAll('[data-marker-id]').forEach((button) =>
@@ -202,6 +211,20 @@ function renderMapContent() {
       mapUi.viewport.setPointerCapture(event.pointerId);
     }),
   );
+}
+
+function markerLayer(type, className = '') {
+  if (type.startsWith('champ-blue') || className === 'champ-blue') return 'blue';
+  if (type.startsWith('champ-red') || className === 'champ-red') return 'red';
+  if (type.startsWith('ward-')) return 'vision';
+  return 'objectives';
+}
+
+function setLayerVisibility(layer, visible) {
+  layerState[layer] = visible;
+  document
+    .querySelectorAll(`[data-layer="${layer}"]`)
+    .forEach((element) => element.classList.toggle('layer-hidden', !visible));
 }
 
 function rememberChange() {
@@ -309,7 +332,7 @@ function renderSavedStrategies() {
     ? mapState.saved
         .map(
           (strategy) =>
-            `<article class="saved-tool-row"><span class="strategy-icon">⌖</span><span><strong>${escapeMap(strategy.name)}</strong><small>${(strategy.markers || []).length} marcações · ${(strategy.routes || []).length} rotas · ${escapeMap(strategy.patch || '—')}</small></span><button type="button" data-load-strategy="${escapeMap(strategy.id)}">Carregar</button><button type="button" class="saved-delete" data-delete-strategy="${escapeMap(strategy.id)}" aria-label="Excluir ${escapeMap(strategy.name)}">×</button></article>`,
+            `<article class="saved-tool-row"><span class="strategy-icon">⌖</span><span><strong>${escapeMap(strategy.name)}</strong><small>${(strategy.markers || []).length} marcações · ${(strategy.routes || []).length} rotas · ${escapeMap(strategy.patch || '—')} · mapa v${strategy.coordinateVersion || 1}</small></span><button type="button" data-load-strategy="${escapeMap(strategy.id)}">Carregar</button><button type="button" class="saved-delete" data-delete-strategy="${escapeMap(strategy.id)}" aria-label="Excluir ${escapeMap(strategy.name)}">×</button></article>`,
         )
         .join('')
     : '<p class="tool-empty">Você ainda não salvou estratégias.</p>';
@@ -360,7 +383,10 @@ function loadStrategy(id) {
   pushHistory();
   resetView();
   renderMapContent();
-  mapUi.status.textContent = `“${strategy.name}” carregada. Edite o mapa e salve para atualizar.`;
+  mapUi.status.textContent =
+    strategy.coordinateVersion === MAP_COORDINATE_VERSION
+      ? `“${strategy.name}” carregada. Edite o mapa e salve para atualizar.`
+      : `“${strategy.name}” é de uma versão anterior do mapa. As coordenadas foram mantidas sem conversão; revise cada marcador antes de atualizar a estratégia.`;
 }
 
 function saveStrategy() {
@@ -374,6 +400,7 @@ function saveStrategy() {
     id: mapState.editingId || crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`,
     name,
     patch: mapState.patch,
+    coordinateVersion: MAP_COORDINATE_VERSION,
     markers: JSON.parse(JSON.stringify(mapState.markers)),
     routes: JSON.parse(JSON.stringify(mapState.routes)),
     updatedAt: new Date().toISOString(),
@@ -398,6 +425,7 @@ async function exportMap() {
     canvas.width = 1200;
     canvas.height = 1200;
     const context = canvas.getContext('2d');
+    canvas.height = Math.round((canvas.width * bitmap.height) / bitmap.width);
     context.fillStyle = '#07101b';
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
@@ -405,9 +433,11 @@ async function exportMap() {
       context.font = 'bold 16px Inter, Arial, sans-serif';
       context.textAlign = 'center';
       context.fillStyle = 'rgba(229,239,249,.78)';
-      regionLabels.forEach(([name, x, y]) => context.fillText(name, x * 1.2, y * 1.2));
+      regionLabels.forEach(([name, x, y]) =>
+        context.fillText(name, (x / 1000) * canvas.width, (y / 1000) * canvas.height),
+      );
     }
-    for (const route of mapState.routes) {
+    for (const route of mapState.routes.filter(() => layerState.routes)) {
       if (!route.points.length) continue;
       context.beginPath();
       route.points.forEach((point, index) =>
@@ -442,7 +472,10 @@ async function exportMap() {
         context.fill();
       }
     }
-    for (const marker of mapState.markers) {
+    for (const marker of mapState.markers.filter(
+      (entry) =>
+        layerState[markerLayer(entry.type, markerTypes[entry.type]?.className)],
+    )) {
       const info = markerTypes[marker.type] || {
         name: 'Marcação',
         glyph: '•',
@@ -496,7 +529,7 @@ async function initializeMap() {
     );
     mapState.patch = versions[0];
     mapUi.patch.textContent = `Data Dragon · patch ${mapState.patch}`;
-    mapUi.image.src = `https://ddragon.leagueoflegends.com/cdn/${mapState.patch}/img/map/map11.png`;
+    mapUi.image.src = './assets/summoners-rift-reference.png';
     mapUi.image.addEventListener('load', () => {
       mapUi.status.textContent =
         'Mapa oficial carregado. Escolha uma ferramenta para marcar.';
@@ -514,6 +547,12 @@ async function initializeMap() {
       .forEach((button) =>
         button.addEventListener('click', () => setTool(button.dataset.mapTool)),
       );
+    document.querySelectorAll('[data-map-layer]').forEach((input) => {
+      layerState[input.dataset.mapLayer] = input.checked;
+      input.addEventListener('change', () =>
+        setLayerVisibility(input.dataset.mapLayer, input.checked),
+      );
+    });
     mapUi.viewport.addEventListener('pointerdown', (event) => {
       if (event.button !== 0) return;
       if (mapState.tool === 'pan') {

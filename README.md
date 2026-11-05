@@ -95,9 +95,10 @@ O Matchup Explorer compara dois campeões por rota usando atributos e descriçõ
 
 ## Build Comparator, Rune Lab e Rift Map
 
-- **Build Comparator** usa o mesmo catálogo e cálculo do Build Lab, permite montar duas builds independentes, importar builds salvas localmente e comparar custo e atributos. Os itens são identificados pelo ID oficial para manter variantes de mesmo nome distintas.
+- **Build Comparator** usa o mesmo catálogo validado e cálculo do Build Lab, permite montar duas builds independentes, importar builds salvas localmente e comparar custo e atributos. IDs alternativos de registros comprovadamente equivalentes são associados ao item canônico para manter builds antigas carregáveis.
 - **Rune Lab** carrega árvores e runas do Data Dragon atual, valida a seleção principal/secundária e os fragmentos de atributos, e salva até 30 páginas no LocalStorage deste navegador. Os fragmentos aparecem na configuração, mas não são somados aos atributos de item do Build Lab.
-- **Rift Map** usa o mapa de Summoner’s Rift do Data Dragon para marcar visão, campeões e objetivos, desenhar rotas, desfazer/refazer, salvar estratégias no LocalStorage e exportar um PNG. Estratégias locais não sincronizam entre dispositivos.
+- **Rift Map** usa a imagem de Summoner’s Rift fornecida como referência pelo proprietário do projeto, com coordenadas normalizadas para marcar visão, campeões e objetivos, desenhar rotas, controlar camadas, desfazer/refazer, salvar estratégias no LocalStorage e exportar PNG. Estratégias legadas são sinalizadas como v1 e não são reposicionadas automaticamente.
+- **Simulação de partidas** abre em `simulation.html`, que reúne o montador de equipes e a simulação numa rota direta, sem depender de uma âncora escondida na home.
 - `frontend/build-core.js` centraliza o carregamento e o cálculo compartilhado de itens para evitar divergência entre Build Lab e Comparator.
 
 ## Limitações

@@ -27,6 +27,18 @@
       .replace(/\s+/g, ' ')
       .trim();
 
+  // ID 667666 is the Collector record for Doom Bots, outside classic Summoner's
+  // Rift; keep the normal SR record (6676). See the mode-catalog audit link.
+  const modeSpecificVariants = new Map([
+    [
+      '667666',
+      {
+        canonicalId: '6676',
+        evidence: 'https://lol-lab.syugyo.pro/en/runes/8351?patch=16.19.1',
+      },
+    ],
+  ]);
+
   async function fetchJson(url) {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Falha ao carregar dados (${response.status}).`);
@@ -48,7 +60,7 @@
 
   function normalizeItems(itemCatalog) {
     const entries = Object.entries(itemCatalog.data || {})
-      .filter(([, item]) => isAvailableItem(item))
+      .filter(([id, item]) => isAvailableItem(item) && !modeSpecificVariants.has(id))
       .map(([id, item]) => ({ ...item, id: String(id) }));
     const groups = new Map(
       (itemCatalog.groups || []).map((group) => [
@@ -56,52 +68,105 @@
         Number(group.MaxGroupOwnable),
       ]),
     );
-    const nameCounts = new Map();
-    entries.forEach((item) => {
-      const key = normalize(item.name);
-      nameCounts.set(key, (nameCounts.get(key) || 0) + 1);
+    const candidates = entries.map((item) => {
+      const restrictionGroups = [
+        item.group,
+        ...(item.tags || []).filter((tag) => groups.has(tag)),
+        ...(groups.has(item.id) ? [item.id] : []),
+      ].filter((group, index, all) => group && all.indexOf(group) === index);
+      const limits = restrictionGroups.map((group) => groups.get(group));
+      const positiveLimits = limits.filter(
+        (limit) => Number.isFinite(limit) && limit > 0,
+      );
+      const rawStackLimit = Number(item.stacks);
+      const stackLimit =
+        Number.isFinite(rawStackLimit) && rawStackLimit > 1 ? rawStackLimit : 1;
+      const repeatLimit = positiveLimits.length
+        ? Math.min(stackLimit, ...positiveLimits)
+        : limits.some((limit) => limit === -1)
+          ? stackLimit > 1
+            ? stackLimit
+            : 6
+          : stackLimit;
+      return {
+        ...item,
+        restrictionGroups,
+        groupLimits: Object.fromEntries(
+          restrictionGroups.map((group) => [group, groups.get(group)]),
+        ),
+        repeatLimit,
+        displayName: item.name,
+      };
     });
-    const items = entries
-      .map((item) => {
-        const restrictionGroups = [
-          item.group,
-          ...(item.tags || []).filter((tag) => groups.has(tag)),
-          ...(groups.has(item.id) ? [item.id] : []),
-        ].filter((group, index, all) => group && all.indexOf(group) === index);
-        const limits = restrictionGroups.map((group) => groups.get(group));
-        const positiveLimits = limits.filter(
-          (limit) => Number.isFinite(limit) && limit > 0,
-        );
-        const rawStackLimit = Number(item.stacks);
-        const stackLimit =
-          Number.isFinite(rawStackLimit) && rawStackLimit > 1 ? rawStackLimit : 1;
-        const repeatLimit = positiveLimits.length
-          ? Math.min(stackLimit, ...positiveLimits)
-          : limits.some((limit) => limit === -1)
-            ? stackLimit > 1
-              ? stackLimit
-              : 6
-            : stackLimit;
-        return {
-          ...item,
-          restrictionGroups,
-          groupLimits: Object.fromEntries(
-            restrictionGroups.map((group) => [group, groups.get(group)]),
-          ),
-          repeatLimit,
-          displayName:
-            nameCounts.get(normalize(item.name)) > 1
-              ? `${item.name} · ID ${item.id}`
-              : item.name,
-        };
+    const itemFingerprint = (item) =>
+      JSON.stringify({
+        image: item.image?.full,
+        stats: item.stats || {},
+        gold: item.gold?.total,
+        recipe: {
+          from: item.from || [],
+          into: item.into || [],
+          depth: item.depth || 0,
+        },
+        tags: [...(item.tags || [])].sort(),
+        description: normalize(item.description),
+        summonersRift: item.maps?.['11'] === true,
+        requiredAlly: item.requiredAlly || '',
+        requiredChampion: item.requiredChampion || '',
+        inStore: item.inStore !== false,
+        hideFromAll: item.hideFromAll === true,
+      });
+    const duplicateBuckets = new Map();
+    for (const item of candidates) {
+      const key = `${normalize(item.name)}|${itemFingerprint(item)}`;
+      const bucket = duplicateBuckets.get(key) || [];
+      bucket.push(item);
+      duplicateBuckets.set(key, bucket);
+    }
+    const aliases = new Map();
+    const duplicateAudit = [];
+    const items = [...duplicateBuckets.values()]
+      .map((bucket) => {
+        bucket.sort((a, b) => a.id.length - b.id.length || Number(a.id) - Number(b.id));
+        const canonical = bucket[0];
+        if (bucket.length > 1) {
+          duplicateAudit.push({
+            name: canonical.name,
+            canonicalId: canonical.id,
+            duplicateIds: bucket.slice(1).map((item) => item.id),
+            reason:
+              'Same normalized name, image, stats, price, tags, description, and SR availability.',
+          });
+          for (const duplicate of bucket.slice(1))
+            aliases.set(duplicate.id, canonical.id);
+        }
+        return canonical;
       })
       .sort(
         (a, b) => a.name.localeCompare(b.name, 'pt-BR') || a.id.localeCompare(b.id),
       );
+    const itemById = new Map(items.map((item) => [item.id, item]));
+    for (const [aliasId, canonicalId] of aliases) {
+      const canonical = itemById.get(canonicalId);
+      if (canonical) itemById.set(aliasId, canonical);
+    }
+    const modeVariantAudit = [];
+    for (const [variantId, detail] of modeSpecificVariants) {
+      const canonical = itemById.get(detail.canonicalId);
+      if (!canonical || !itemCatalog.data?.[variantId]) continue;
+      itemById.set(variantId, canonical);
+      modeVariantAudit.push({
+        variantId,
+        canonicalId: detail.canonicalId,
+        reason: 'Explicit alternate-mode duplicate excluded from Summoner’s Rift.',
+        evidence: detail.evidence,
+      });
+    }
     return {
       items,
-      itemById: new Map(items.map((item) => [item.id, item])),
+      itemById,
       groups: Object.fromEntries(groups),
+      duplicateAudit: [...duplicateAudit, ...modeVariantAudit],
     };
   }
 
@@ -116,7 +181,7 @@
       fetchJson(`${base}/item.json`),
       fetchJson(`${base}/runesReforged.json`),
     ]);
-    const { items, itemById, groups } = normalizeItems(itemCatalog);
+    const { items, itemById, groups, duplicateAudit } = normalizeItems(itemCatalog);
     return {
       patch,
       champions: Object.values(championCatalog.data).sort((a, b) =>
@@ -125,6 +190,7 @@
       items,
       itemById,
       groups,
+      duplicateAudit,
       runes,
       championCatalog,
     };

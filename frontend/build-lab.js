@@ -227,9 +227,9 @@ function renderItems() {
     ? list
         .map((item) => {
           return `<article class="build-item-card">
-      <button class="build-item-add-button" type="button" data-item-id="${item.id}" aria-label="Adicionar ${escapeHtml(item.name)} à build">
+      <button class="build-item-add-button" type="button" data-item-id="${item.id}" title="ID oficial ${escapeHtml(item.id)}" aria-label="Adicionar ${escapeHtml(item.name)} à build">
         <span class="build-item-image"><img src="https://ddragon.leagueoflegends.com/cdn/${state.patch}/img/item/${escapeHtml(item.image.full)}" alt="" loading="lazy"></span>
-        <span class="build-item-copy"><strong>${escapeHtml(item.displayName || item.name)}</strong><small>${formatNumber(item.gold.total)} ouro · ID ${escapeHtml(item.id)}</small><span>${escapeHtml(itemSummary(item))}</span></span>
+        <span class="build-item-copy"><strong>${escapeHtml(item.displayName || item.name)}</strong><small>${formatNumber(item.gold.total)} ouro</small><span>${escapeHtml(itemSummary(item))}</span></span>
         <span class="build-item-add" aria-hidden="true">＋</span>
       </button><button class="build-item-info" type="button" data-item-info="${item.id}" aria-label="Ver descrição de ${escapeHtml(item.name)}">i</button>
     </article>`;
@@ -525,7 +525,7 @@ function openItemDetail(id) {
   const item = state.itemById.get(id);
   if (!item) return;
   ui.itemDialogTitle.textContent = item.name;
-  ui.itemDialogContent.innerHTML = `<div class="build-item-detail"><img src="https://ddragon.leagueoflegends.com/cdn/${state.patch}/img/item/${escapeHtml(item.image.full)}" alt=""><div><strong>${formatNumber(item.gold.total)} ouro</strong><p>${escapeHtml(cleanDescription(item.description) || 'Sem descrição oficial disponível.')}</p></div></div>`;
+  ui.itemDialogContent.innerHTML = `<div class="build-item-detail"><img src="https://ddragon.leagueoflegends.com/cdn/${state.patch}/img/item/${escapeHtml(item.image.full)}" alt=""><div><strong>${formatNumber(item.gold.total)} ouro · ID ${escapeHtml(item.id)}</strong><p>${escapeHtml(cleanDescription(item.description) || 'Sem descrição oficial disponível.')}</p></div></div>`;
 }
 
 function openSaveDialog() {
