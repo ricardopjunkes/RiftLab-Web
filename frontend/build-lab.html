@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#080c14" />
+    <title>Build Lab — Rift Lab</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./theme.css" />
+  </head>
+  <body>
+    <div class="shell build-shell">
+      <header class="topbar">
+        <a class="brand" href="./index.html" aria-label="Rift Lab — início"
+          ><span class="brandmark">✦</span><span>rift<em>lab</em></span></a
+        >
+        <nav class="nav" aria-label="Navegação principal">
+          <a href="./index.html#tools">Início</a>
+          <details class="nav-group">
+            <summary>Campeões</summary>
+            <div class="nav-dropdown">
+              <a href="./index.html#guide">Galeria e guia</a
+              ><a href="./index.html#matchup-explorer">Matchup Explorer</a>
+            </div>
+          </details>
+          <details class="nav-group">
+            <summary>Estratégia</summary>
+            <div class="nav-dropdown">
+              <a href="./index.html#builder">Composições</a
+              ><a href="./index.html#draft-simulator">Draft Simulator</a
+              ><a class="active" href="./build-lab.html" aria-current="page"
+                >Build Lab</a
+              >
+            </div>
+          </details>
+          <details class="nav-group">
+            <summary>Simulações</summary>
+            <div class="nav-dropdown">
+              <a href="./index.html#simulator">Simulação de partidas</a>
+            </div>
+          </details>
+          <details class="nav-group">
+            <summary>Academia</summary>
+            <div class="nav-dropdown">
+              <a href="./quiz.html">Adivinhe o Campeão</a
+              ><a href="./academy.html">Academy</a>
+            </div>
+          </details>
+        </nav>
+        <div class="topright">LABORATÓRIO DE BUILDS</div>
+      </header>
+      <main class="build-main">
+        <a class="build-back" href="./index.html#tools">← Voltar às ferramentas</a>
+        <section class="build-hero">
+          <div>
+            <div class="eyebrow">Rift Lab · Ferramentas de estratégia</div>
+            <h1>Build <span>Lab</span></h1>
+            <p>
+              Monte uma build, confira os atributos diretos dos itens e planeje suas
+              compras.
+            </p>
+          </div>
+          <span class="patch" id="build-patch" aria-live="polite"
+            >Carregando dados oficiais…</span
+          >
+        </section>
+        <div class="build-layout">
+          <section
+            class="build-panel build-champion-panel"
+            aria-labelledby="build-champion-title"
+          >
+            <div class="build-panel-heading">
+              <div>
+                <span class="build-step">01 · CAMPEÃO</span>
+                <h2 id="build-champion-title">Escolha seu campeão</h2>
+              </div>
+            </div>
+            <label class="build-search"
+              ><span aria-hidden="true">⌕</span
+              ><input
+                id="build-champion-search"
+                type="search"
+                placeholder="Buscar campeão…"
+                autocomplete="off"
+                aria-label="Buscar campeão"
+            /></label>
+            <div
+              class="build-champions"
+              id="build-champions"
+              aria-live="polite"
+              aria-busy="true"
+            >
+              <div class="build-loading">Carregando campeões oficiais…</div>
+            </div>
+            <div class="build-selected-champion" id="build-selected-champion">
+              <div class="build-champion-empty">
+                Selecione um campeão para conferir os atributos base.
+              </div>
+            </div>
+          </section>
+
+          <section
+            class="build-panel build-inventory-panel"
+            aria-labelledby="build-inventory-title"
+          >
+            <div class="build-panel-heading">
+              <div>
+                <span class="build-step">02 · INVENTÁRIO</span>
+                <h2 id="build-inventory-title">Sua build</h2>
+              </div>
+              <button class="build-quiet-button" id="build-clear" type="button">
+                Limpar itens
+              </button>
+            </div>
+            <div
+              class="build-slots"
+              id="build-slots"
+              aria-label="Inventário com seis espaços"
+            ></div>
+            <div class="build-catalog-head">
+              <div>
+                <span class="build-step">CATÁLOGO OFICIAL</span>
+                <h3>Itens de Summoner’s Rift</h3>
+              </div>
+              <span id="build-item-count">Carregando…</span>
+            </div>
+            <div class="build-filters">
+              <label class="build-search"
+                ><span aria-hidden="true">⌕</span
+                ><input
+                  id="build-item-search"
+                  type="search"
+                  placeholder="Buscar item…"
+                  autocomplete="off"
+                  aria-label="Buscar item"
+              /></label>
+              <select id="build-item-category" aria-label="Filtrar itens por categoria">
+                <option value="all">Todas as categorias</option>
+                <option value="attack">Ataque</option>
+                <option value="magic">Magia</option>
+                <option value="defense">Defesa</option>
+                <option value="boots">Botas</option>
+                <option value="other">Outros</option>
+              </select>
+            </div>
+            <div
+              class="build-items"
+              id="build-items"
+              aria-live="polite"
+              aria-busy="true"
+            >
+              <div class="build-loading">Carregando catálogo de itens…</div>
+            </div>
+            <p class="build-footnote">
+              Os valores somam apenas atributos numéricos explícitos no Data Dragon.
+              Efeitos passivos e ativos são exibidos como descrição, sem simulação.
+            </p>
+          </section>
+
+          <aside
+            class="build-panel build-stats-panel"
+            aria-labelledby="build-stats-title"
+          >
+            <div class="build-panel-heading">
+              <div>
+                <span class="build-step">03 · ATRIBUTOS</span>
+                <h2 id="build-stats-title">Resumo da build</h2>
+              </div>
+            </div>
+            <div class="build-total-cost">
+              <span>Custo total</span
+              ><strong id="build-total-cost">0 <small>ouro</small></strong>
+            </div>
+            <div class="build-stats-block">
+              <h3>Atributos base</h3>
+              <div id="build-base-stats" class="build-stat-list">
+                <p>Selecione um campeão.</p>
+              </div>
+            </div>
+            <div class="build-stats-block">
+              <h3>Bônus dos itens</h3>
+              <div id="build-bonus-stats" class="build-stat-list">
+                <p>Adicione itens para ver os bônus.</p>
+              </div>
+            </div>
+            <div class="build-stats-block build-total-block">
+              <h3>Total estimado</h3>
+              <div id="build-total-stats" class="build-stat-list">
+                <p>Selecione um campeão.</p>
+              </div>
+            </div>
+            <div class="build-save-actions">
+              <button class="build-save-button" id="build-save" type="button" disabled>
+                Salvar build
+              </button>
+              <p id="build-status" role="status" aria-live="polite"></p>
+            </div>
+          </aside>
+        </div>
+        <section
+          class="build-panel build-saved-panel"
+          aria-labelledby="build-saved-title"
+        >
+          <div class="build-panel-heading">
+            <div>
+              <span class="build-step">NESTE NAVEGADOR</span>
+              <h2 id="build-saved-title">Builds salvas</h2>
+            </div>
+            <span id="build-saved-count">0 builds</span>
+          </div>
+          <div class="build-saved-list" id="build-saved-list">
+            <p class="build-empty">Suas builds salvas aparecerão aqui.</p>
+          </div>
+        </section>
+      </main>
+      <footer class="footer">
+        <span><strong>riftlab</strong> · Build Lab</span
+        ><span
+          >Dados oficiais via Riot Games Data Dragon. Não afiliado à Riot Games.</span
+        >
+      </footer>
+    </div>
+    <dialog class="app-confirm-dialog" id="build-save-dialog">
+      <form method="dialog">
+        <span class="eyebrow">Salvar configuração</span>
+        <h2>Nomeie esta build</h2>
+        <label class="build-dialog-label" for="build-name">Nome</label
+        ><input
+          id="build-name"
+          maxlength="48"
+          required
+          placeholder="Ex.: Ahri — burst"
+        />
+        <div class="app-confirm-actions">
+          <button value="cancel" formnovalidate>Cancelar</button
+          ><button class="build-save-button" value="save">Salvar</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog class="build-item-dialog" id="build-item-dialog">
+      <div class="build-item-dialog-head">
+        <strong id="build-item-dialog-title">Item</strong
+        ><button
+          id="build-item-dialog-close"
+          type="button"
+          aria-label="Fechar detalhes do item"
+        >
+          ×
+        </button>
+      </div>
+      <div id="build-item-dialog-content"></div>
+    </dialog>
+    <script src="./build-lab.js"></script>
+  </body>
+</html>
