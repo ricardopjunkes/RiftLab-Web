@@ -1,34 +1,40 @@
 const MAP_STORAGE_KEY = 'riftlab-rift-map-strategies-v1';
 const MAP_COORDINATE_VERSION = 3;
 const markerTypes = {
-  'ward-ally': { name: 'Ward aliada', glyph: 'W', className: 'ally' },
-  'ward-control': { name: 'Control ward', glyph: 'C', className: 'control' },
-  'ward-enemy': { name: 'Ward inimiga', glyph: 'W', className: 'enemy' },
-  danger: { name: 'Perigo', glyph: '!', className: 'danger' },
-  interest: { name: 'Ponto de interesse', glyph: '★', className: 'interest' },
-  dragon: { name: 'Dragão', glyph: 'D', className: 'objective' },
-  baron: { name: 'Barão Nashor', glyph: 'B', className: 'objective' },
-  herald: { name: 'Arauto do Vale', glyph: 'H', className: 'objective' },
-  'champ-blue': { name: 'Campeão azul', glyph: '●', className: 'champ-blue' },
-  'champ-red': { name: 'Campeão vermelho', glyph: '●', className: 'champ-red' },
+  'ward-ally': { name: 'Sentinela aliada', className: 'ally', icon: 'ward' },
+  'ward-control': {
+    name: 'Sentinela de controle',
+    className: 'control',
+    icon: 'control',
+  },
+  'ward-enemy': { name: 'Sentinela inimiga', className: 'enemy', icon: 'enemy-ward' },
+  danger: { name: 'Perigo', className: 'danger', icon: 'danger' },
+  interest: { name: 'Ponto de atenção', className: 'interest', icon: 'interest' },
+  dragon: { name: 'Covil do Dragão', className: 'objective', icon: 'dragon' },
+  baron: { name: 'Covil do Barão', className: 'objective', icon: 'baron' },
+  herald: { name: 'Arauto do Vale', className: 'objective', icon: 'herald' },
+  'champ-blue': { name: 'Campeão azul', className: 'champ-blue', icon: 'champion' },
+  'champ-red': { name: 'Campeão vermelho', className: 'champ-red', icon: 'champion' },
 };
 const regionLabels = [
-  ['TOPO', 500, 95],
-  ['MEIO', 505, 490],
-  ['ROTA INFERIOR', 520, 890],
-  ['SELVA AZUL', 275, 700],
-  ['SELVA VERMELHA', 720, 300],
-  ['RIO', 530, 495],
-  ['BARÃO', 390, 285],
-  ['DRAGÃO', 620, 520],
-  ['BASE AZUL', 145, 835],
-  ['BASE VERMELHA', 755, 120],
+  ['Topo', 500, 104, true],
+  ['Meio', 510, 505, true],
+  ['Rota inferior', 535, 902, true],
+  ['Selva azul', 278, 704, false],
+  ['Selva vermelha', 724, 298, false],
+  ['Rio', 510, 455, true],
+  ['Covil do Barão', 390, 280, true],
+  ['Covil do Dragão', 620, 526, true],
+  ['Base azul', 148, 846, false],
+  ['Base vermelha', 752, 116, false],
 ];
 const layerState = {
+  regions: true,
   blue: true,
   red: true,
   vision: true,
   objectives: true,
+  alerts: true,
   routes: true,
 };
 const mapUi = {
@@ -41,6 +47,9 @@ const mapUi = {
   regions: document.querySelector('#map-region-labels'),
   markers: document.querySelector('#map-markers'),
   zoom: document.querySelector('#map-zoom'),
+  champion: document.querySelector('#map-champion-select'),
+  routeWeight: document.querySelector('#map-route-weight'),
+  routeWeightValue: document.querySelector('#map-route-weight-value'),
   name: document.querySelector('#map-strategy-name'),
   saved: document.querySelector('#map-saved-strategies'),
 };
@@ -61,6 +70,9 @@ const mapState = {
   startPointer: null,
   draftPoints: [],
   markerDrag: null,
+  champions: [],
+  selectedChampion: null,
+  pendingChampionTool: '',
 };
 
 function readSaved() {
@@ -118,6 +130,13 @@ function updateHistoryButtons() {
 }
 
 function setTool(tool) {
+  if (tool.startsWith('champ-') && !mapState.selectedChampion) {
+    mapState.pendingChampionTool = tool;
+    mapUi.status.textContent = 'Escolha um campeão antes de posicioná-lo no mapa.';
+    mapUi.champion.focus();
+    return;
+  }
+  mapState.pendingChampionTool = '';
   mapState.tool = tool;
   mapUi.viewport.dataset.tool = tool;
   document
@@ -130,15 +149,18 @@ function setTool(tool) {
       ? 'Arraste pelo mapa para desenhar.'
       : tool === 'pan'
         ? 'Arraste pelo mapa para mover a vista.'
-        : tool === 'eraser'
-          ? 'Clique perto de uma marcação ou rota para removê-la.'
-          : `Clique no mapa para adicionar: ${markerTypes[tool]?.name || tool}.`;
+        : tool === 'select'
+          ? 'Toque ou clique em uma marcação para ver seus detalhes. Arraste para reposicionar.'
+          : tool === 'eraser'
+            ? 'Clique perto de uma marcação ou rota para removê-la.'
+            : `Clique no mapa para adicionar: ${markerTypes[tool]?.name || tool}.`;
   mapUi.status.textContent = mode;
 }
 
 function applyTransform() {
   mapUi.canvas.style.transform = `translate(${mapState.panX}px, ${mapState.panY}px) scale(${mapState.zoom})`;
   mapUi.zoom.value = String(mapState.zoom);
+  mapUi.canvas.style.setProperty('--map-marker-scale', String(1 / mapState.zoom));
 }
 
 function pointFromEvent(event) {
@@ -150,44 +172,122 @@ function pointFromEvent(event) {
 }
 
 function svgPath(points) {
-  return points
-    .map(
-      (point, index) =>
-        `${index ? 'L' : 'M'} ${Math.round(point.x * 1000)} ${Math.round(point.y * 1000)}`,
-    )
-    .join(' ');
+  if (!points.length) return '';
+  const scaled = points.map((point) => ({ x: point.x * 1000, y: point.y * 1000 }));
+  if (scaled.length < 3)
+    return `M ${scaled[0].x} ${scaled[0].y} L ${scaled.at(-1).x} ${scaled.at(-1).y}`;
+  let path = `M ${scaled[0].x} ${scaled[0].y}`;
+  for (let index = 1; index < scaled.length - 1; index++) {
+    const current = scaled[index];
+    const next = scaled[index + 1];
+    path += ` Q ${current.x} ${current.y} ${(current.x + next.x) / 2} ${(current.y + next.y) / 2}`;
+  }
+  const last = scaled.at(-1);
+  path += ` T ${last.x} ${last.y}`;
+  return path;
+}
+
+function iconSvg(name) {
+  const paths = {
+    select: '<path d="m5 3 14 10-6 1.2L10 20 5 3Z"/>',
+    pan: '<path d="M12 3v18M3 12h18M12 3l-3 3m3-3 3 3M21 12l-3-3m3 3-3 3M12 21l-3-3m3 3 3-3M3 12l3-3m-3 3 3 3"/>',
+    champion: '<circle cx="12" cy="12" r="8"/><path d="M8 12h8M12 8v8"/>',
+    ward: '<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><circle cx="12" cy="9" r="2"/>',
+    control:
+      '<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><path d="m9 9 3-3 3 3-3 3-3-3Z"/>',
+    enemy:
+      '<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><path d="m9 9 6 0m-3-3v6"/>',
+    dragon:
+      '<path d="M4 15c3-1 3-5 6-7l2 3 3-5 1 5 4 2-4 2-2 4-3-3-4 2 1-4Z"/><path d="m7 10-3-2m12 0 3-3"/>',
+    baron:
+      '<path d="M5 19c2-5 1-10 7-14 6 4 5 9 7 14-3-1-5-2-7-2s-4 1-7 2Z"/><path d="M9 12h6m-3-4v8"/>',
+    herald:
+      '<path d="M4 18c2-6 2-10 8-13 6 3 6 7 8 13l-8-2-8 2Z"/><circle cx="12" cy="12" r="2"/>',
+    route:
+      '<path d="M4 18c5-12 10 6 16-8"/><circle cx="4" cy="18" r="1"/><circle cx="20" cy="10" r="1"/>',
+    arrow: '<path d="M4 17c5-10 10 4 16-8"/><path d="m15 8 5 1-1 5"/>',
+    danger: '<path d="m12 3 10 18H2L12 3Z"/><path d="M12 9v5m0 3h.01"/>',
+    interest:
+      '<path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6-5.4-2.9-5.4 2.9 1-6-4.4-4.3 6.1-.9L12 3Z"/>',
+    eraser: '<path d="m3 15 9-10 9 8-7 7H8l-5-5Z"/><path d="m9 8 8 8"/>',
+  };
+  const type = name.startsWith('route-')
+    ? 'route'
+    : name.startsWith('arrow-')
+      ? 'arrow'
+      : name.startsWith('champ-')
+        ? 'champion'
+        : name;
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[type] || paths.select}</svg>`;
+}
+
+function markerMarkup(marker, data) {
+  if (marker.type.startsWith('champ-') && marker.champion) {
+    const champion = mapState.champions.find((entry) => entry.id === marker.champion);
+    if (champion)
+      return `<img src="https://ddragon.leagueoflegends.com/cdn/${mapState.patch}/img/champion/${escapeMap(champion.image.full)}" alt="" loading="lazy" />`;
+  }
+  const shapes = {
+    ward: '<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><circle cx="12" cy="9" r="2"/>',
+    control:
+      '<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><path d="m9 9 3-3 3 3-3 3-3-3Z"/>',
+    'enemy-ward':
+      '<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><path d="m9 9 6 0m-3-3v6"/>',
+    dragon: '<path d="M4 15c3-1 3-5 6-7l2 3 3-5 1 5 4 2-4 2-2 4-3-3-4 2 1-4Z"/>',
+    baron:
+      '<path d="M5 19c2-5 1-10 7-14 6 4 5 9 7 14-3-1-5-2-7-2s-4 1-7 2Z"/><path d="M9 12h6"/>',
+    herald:
+      '<path d="M4 18c2-6 2-10 8-13 6 3 6 7 8 13l-8-2-8 2Z"/><circle cx="12" cy="12" r="2"/>',
+    danger: '<path d="m12 3 10 18H2L12 3Z"/><path d="M12 9v5m0 3h.01"/>',
+    interest:
+      '<path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6-5.4-2.9-5.4 2.9 1-6-4.4-4.3 6.1-.9L12 3Z"/>',
+  };
+  return `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${shapes[data.icon] || shapes.interest}</svg>`;
 }
 
 function renderRegions() {
+  mapUi.regions.dataset.layer = 'regions';
+  mapUi.regions.classList.toggle('layer-hidden', !layerState.regions);
   mapUi.regions.innerHTML = regionLabels
     .map(
-      ([name, x, y]) => `<text x="${x}" y="${y}" text-anchor="middle">${name}</text>`,
+      ([name, x, y, essential]) =>
+        `<text class="region-label ${essential ? 'is-essential' : 'is-optional'}" x="${x}" y="${y}" text-anchor="middle">${escapeMap(name)}</text>`,
     )
     .join('');
+  mapUi.regions.classList.toggle(
+    'show-all',
+    Boolean(document.querySelector('#map-show-all-regions')?.checked),
+  );
 }
 
 function renderMapContent() {
   mapUi.routes.innerHTML =
-    '<defs><marker id="map-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,4 L0,8 z" fill="context-stroke"></path></marker></defs>' +
+    '<defs><marker id="map-arrow" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L5,2.5 L0,5 z" fill="context-stroke"></path></marker></defs>' +
     mapState.routes
       .map((route) => {
-        const cls = route.team === 'red' ? 'route-red' : 'route-blue';
+        const cls = `route-${route.team || 'blue'}`;
         const arrow = route.arrow ? ' marker-end="url(#map-arrow)"' : '';
-        return `<path class="${cls} ${layerState.routes ? '' : 'layer-hidden'}" data-layer="routes" d="${svgPath(route.points)}"${arrow}></path>`;
+        return `<path class="${cls} ${layerState.routes ? '' : 'layer-hidden'}" data-layer="routes" stroke-width="${clamp(Number(route.width) || 2, 1, 4)}" d="${svgPath(route.points)}"${arrow}></path>`;
       })
       .join('') +
     (mapState.draftPoints.length > 1
-      ? `<path class="${mapState.tool.endsWith('red') ? 'route-red' : 'route-blue'} draft-route ${layerState.routes ? '' : 'layer-hidden'}" data-layer="routes" d="${svgPath(mapState.draftPoints)}"></path>`
+      ? `<path class="route-${mapState.tool.endsWith('red') ? 'red' : mapState.tool.endsWith('neutral') ? 'neutral' : 'blue'} draft-route ${layerState.routes ? '' : 'layer-hidden'}" data-layer="routes" stroke-width="${Number(mapUi.routeWeight.value) || 2}" d="${svgPath(mapState.draftPoints)}"></path>`
       : '');
   mapUi.markers.innerHTML = mapState.markers
     .map((marker) => {
       const data = markerTypes[marker.type] || {
         name: 'Marcação',
-        glyph: '•',
+        icon: 'interest',
         className: 'interest',
       };
       const layer = markerLayer(marker.type, data.className);
-      return `<button type="button" class="map-marker ${data.className} ${layerState[layer] ? '' : 'layer-hidden'}" data-layer="${layer}" style="left:${marker.x * 100}%;top:${marker.y * 100}%" data-marker-id="${escapeMap(marker.id)}" aria-label="${escapeMap(data.name)}${marker.label ? `: ${escapeMap(marker.label)}` : ''}" title="${escapeMap(data.name)}${marker.label ? ` · ${escapeMap(marker.label)}` : ''}"><span>${data.glyph}</span></button>`;
+      const label =
+        marker.label ||
+        (marker.champion
+          ? mapState.champions.find((champion) => champion.id === marker.champion)?.name
+          : '');
+      const title = `${data.name}${label ? ` · ${label}` : ''}`;
+      return `<button type="button" class="map-marker ${data.className} ${layerState[layer] ? '' : 'layer-hidden'}" data-layer="${layer}" style="left:${marker.x * 100}%;top:${marker.y * 100}%" data-marker-id="${escapeMap(marker.id)}" aria-label="${escapeMap(title)}" title="${escapeMap(title)}">${markerMarkup(marker, data)}</button>`;
     })
     .join('');
   mapUi.markers.querySelectorAll('[data-marker-id]').forEach((button) =>
@@ -199,6 +299,7 @@ function renderMapContent() {
   mapUi.markers.querySelectorAll('[data-marker-id]').forEach((button) =>
     button.addEventListener('pointerdown', (event) => {
       if (event.button !== 0) return;
+      if (mapState.tool !== 'select') return;
       const marker = mapState.markers.find(
         (entry) => entry.id === button.dataset.markerId,
       );
@@ -217,6 +318,7 @@ function markerLayer(type, className = '') {
   if (type.startsWith('champ-blue') || className === 'champ-blue') return 'blue';
   if (type.startsWith('champ-red') || className === 'champ-red') return 'red';
   if (type.startsWith('ward-')) return 'vision';
+  if (type === 'danger' || type === 'interest') return 'alerts';
   return 'objectives';
 }
 
@@ -238,6 +340,12 @@ function addMarker(point, type) {
     type,
     x: point.x,
     y: point.y,
+    ...(type.startsWith('champ-') && mapState.selectedChampion
+      ? {
+          champion: mapState.selectedChampion.id,
+          label: mapState.selectedChampion.name,
+        }
+      : {}),
   };
   mapState.markers.push(marker);
   rememberChange();
@@ -300,11 +408,16 @@ function finishDrawing() {
   if (mapState.pointerMode !== 'draw') return;
   const points = mapState.draftPoints;
   if (points.length >= 2) {
-    const isRed = mapState.tool.endsWith('red');
+    const team = mapState.tool.endsWith('red')
+      ? 'red'
+      : mapState.tool.endsWith('neutral')
+        ? 'neutral'
+        : 'blue';
     mapState.routes.push({
       id: crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`,
-      team: isRed ? 'red' : 'blue',
+      team,
       arrow: mapState.tool.startsWith('arrow-'),
+      width: Number(mapUi.routeWeight.value) || 2,
       points,
     });
     mapState.draftPoints = [];
@@ -429,13 +542,26 @@ async function exportMap() {
     context.fillStyle = '#07101b';
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    if (document.querySelector('#map-show-regions').checked) {
-      context.font = 'bold 16px Inter, Arial, sans-serif';
+    if (layerState.regions) {
+      context.font = '600 13px Inter, Arial, sans-serif';
       context.textAlign = 'center';
-      context.fillStyle = 'rgba(229,239,249,.78)';
-      regionLabels.forEach(([name, x, y]) =>
-        context.fillText(name, (x / 1000) * canvas.width, (y / 1000) * canvas.height),
-      );
+      context.textBaseline = 'middle';
+      context.fillStyle = 'rgba(6,12,19,.72)';
+      context.strokeStyle = 'rgba(229,239,249,.78)';
+      context.lineWidth = 3;
+      regionLabels
+        .filter(
+          (region) =>
+            region[3] || document.querySelector('#map-show-all-regions').checked,
+        )
+        .forEach(([name, x, y]) => {
+          context.strokeText(
+            name,
+            (x / 1000) * canvas.width,
+            (y / 1000) * canvas.height,
+          );
+          context.fillText(name, (x / 1000) * canvas.width, (y / 1000) * canvas.height);
+        });
     }
     for (const route of mapState.routes.filter(() => layerState.routes)) {
       if (!route.points.length) continue;
@@ -445,8 +571,13 @@ async function exportMap() {
           ? context.lineTo(point.x * canvas.width, point.y * canvas.height)
           : context.moveTo(point.x * canvas.width, point.y * canvas.height),
       );
-      context.strokeStyle = route.team === 'red' ? '#ff7c83' : '#70baff';
-      context.lineWidth = 8;
+      context.strokeStyle =
+        route.team === 'red'
+          ? '#ff858a'
+          : route.team === 'neutral'
+            ? '#d8dbab'
+            : '#79bbff';
+      context.lineWidth = (Number(route.width) || 2) * 2;
       context.lineCap = 'round';
       context.lineJoin = 'round';
       context.stroke();
@@ -456,7 +587,7 @@ async function exportMap() {
         const angle = Math.atan2(end.y - previous.y, end.x - previous.x);
         const x = end.x * canvas.width,
           y = end.y * canvas.height,
-          size = 26;
+          size = 14;
         context.beginPath();
         context.moveTo(x, y);
         context.lineTo(
@@ -468,7 +599,12 @@ async function exportMap() {
           y - size * Math.sin(angle + Math.PI / 6),
         );
         context.closePath();
-        context.fillStyle = route.team === 'red' ? '#ff7c83' : '#70baff';
+        context.fillStyle =
+          route.team === 'red'
+            ? '#ff858a'
+            : route.team === 'neutral'
+              ? '#d8dbab'
+              : '#79bbff';
         context.fill();
       }
     }
@@ -478,7 +614,7 @@ async function exportMap() {
     )) {
       const info = markerTypes[marker.type] || {
         name: 'Marcação',
-        glyph: '•',
+        icon: 'interest',
         className: '',
       };
       const x = marker.x * canvas.width,
@@ -489,17 +625,38 @@ async function exportMap() {
           ? '#d9bf6d'
           : '#b9e970';
       context.beginPath();
-      context.arc(x, y, 24, 0, Math.PI * 2);
+      context.arc(x, y, marker.type.startsWith('champ-') ? 15 : 10, 0, Math.PI * 2);
       context.fillStyle = '#07101be8';
       context.fill();
-      context.lineWidth = 4;
+      context.lineWidth = 2;
       context.strokeStyle = color;
       context.stroke();
-      context.font = 'bold 22px Inter, Arial, sans-serif';
-      context.fillStyle = color;
-      context.textAlign = 'center';
-      context.textBaseline = 'middle';
-      context.fillText(info.glyph, x, y + 1);
+      if (marker.type.startsWith('champ-') && marker.champion) {
+        const champion = mapState.champions.find(
+          (entry) => entry.id === marker.champion,
+        );
+        if (champion) {
+          try {
+            const portrait = new Image();
+            portrait.crossOrigin = 'anonymous';
+            portrait.src = `https://ddragon.leagueoflegends.com/cdn/${mapState.patch}/img/champion/${champion.image.full}`;
+            await portrait.decode();
+            context.save();
+            context.beginPath();
+            context.arc(x, y, 13, 0, Math.PI * 2);
+            context.clip();
+            context.drawImage(portrait, x - 13, y - 13, 26, 26);
+            context.restore();
+          } catch {
+            // Keep the team-colored marker when a portrait cannot be loaded.
+          }
+        }
+      } else {
+        context.fillStyle = color;
+        context.beginPath();
+        context.arc(x, y, 2.5, 0, Math.PI * 2);
+        context.fill();
+      }
     }
     const output = await new Promise((resolve, reject) =>
       canvas.toBlob(
@@ -529,6 +686,25 @@ async function initializeMap() {
     );
     mapState.patch = versions[0];
     mapUi.patch.textContent = `Data Dragon · patch ${mapState.patch}`;
+    try {
+      const response = await window.RiftBuildCore.fetchJson(
+        `https://ddragon.leagueoflegends.com/cdn/${mapState.patch}/data/pt_BR/champion.json`,
+      );
+      mapState.champions = Object.values(response.data || {}).sort((a, b) =>
+        a.name.localeCompare(b.name, 'pt-BR'),
+      );
+      mapUi.champion.innerHTML =
+        '<option value="">Selecione um campeão</option>' +
+        mapState.champions
+          .map(
+            (champion) =>
+              `<option value="${escapeMap(champion.id)}">${escapeMap(champion.name)}</option>`,
+          )
+          .join('');
+    } catch {
+      mapUi.status.textContent =
+        'Retratos de campeões indisponíveis; as demais marcações continuam funcionando.';
+    }
     mapUi.image.src = './assets/summoners-rift-reference.png';
     mapUi.image.addEventListener('load', () => {
       mapUi.status.textContent =
@@ -547,6 +723,24 @@ async function initializeMap() {
       .forEach((button) =>
         button.addEventListener('click', () => setTool(button.dataset.mapTool)),
       );
+    document.querySelectorAll('.map-tool-icon').forEach((icon) => {
+      icon.innerHTML = iconSvg(icon.closest('[data-map-tool]').dataset.mapTool);
+    });
+    mapUi.champion.addEventListener('change', () => {
+      mapState.selectedChampion =
+        mapState.champions.find((champion) => champion.id === mapUi.champion.value) ||
+        null;
+      if (mapState.selectedChampion) {
+        setTool(
+          mapState.pendingChampionTool ||
+            (mapState.tool.startsWith('champ-') ? mapState.tool : 'champ-blue'),
+        );
+      }
+    });
+    mapUi.routeWeight.addEventListener('input', () => {
+      mapUi.routeWeightValue.textContent = mapUi.routeWeight.value;
+      renderMapContent();
+    });
     document.querySelectorAll('[data-map-layer]').forEach((input) => {
       layerState[input.dataset.mapLayer] = input.checked;
       input.addEventListener('change', () =>
@@ -604,6 +798,9 @@ async function initializeMap() {
       if (mapState.pointerId !== event.pointerId) return;
       if (mapState.pointerMode === 'draw') finishDrawing();
       else if (mapState.pointerMode === 'marker' && mapState.markerDrag) {
+        const marker = mapState.markers.find(
+          (entry) => entry.id === mapState.markerDrag.id,
+        );
         const changed = mapState.markerDrag.before !== snapshot();
         mapState.markerDrag = null;
         mapState.pointerMode = '';
@@ -612,6 +809,9 @@ async function initializeMap() {
           renderMapContent();
           mapUi.status.textContent =
             'Marcação reposicionada. Use Desfazer para voltar.';
+        } else if (marker) {
+          const detail = marker.label || markerTypes[marker.type]?.name || 'Marcação';
+          mapUi.status.textContent = `${detail}. Arraste para reposicionar.`;
         }
       } else mapState.pointerMode = '';
       mapState.pointerId = null;
@@ -647,10 +847,8 @@ async function initializeMap() {
     });
     document.querySelector('#map-reset-view').addEventListener('click', resetView);
     document
-      .querySelector('#map-show-regions')
-      .addEventListener('change', (event) =>
-        mapUi.regions.classList.toggle('hidden', !event.target.checked),
-      );
+      .querySelector('#map-show-all-regions')
+      .addEventListener('change', renderRegions);
     document.querySelector('#map-undo').addEventListener('click', () => {
       if (mapState.historyIndex > 0) {
         mapState.historyIndex--;

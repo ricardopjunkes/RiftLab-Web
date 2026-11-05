@@ -55,10 +55,7 @@
         <section class="tool-hero">
           <div class="eyebrow">MESA TÁTICA · SUMMONER’S RIFT</div>
           <h1>Rift <span>Map</span></h1>
-          <p>
-            Planeje visão, movimentação e objetivos no mapa detalhado fornecido como
-            referência para este projeto.
-          </p>
+          <p>Planeje visão, movimentação e objetivos sem perder o Rift de vista.</p>
           <div class="tool-meta">
             <span class="patch" id="map-patch">Carregando mapa oficial…</span
             ><span id="map-status" role="status" aria-live="polite"
@@ -75,81 +72,216 @@
               </div>
             </div>
             <div class="map-tool-grid" role="group" aria-label="Selecionar ferramenta">
-              <button type="button" data-map-tool="pan" aria-pressed="false">
-                <i>✥</i><span>Mover mapa</span>
+              <button
+                type="button"
+                data-map-tool="select"
+                aria-pressed="false"
+                title="Selecionar marcações"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Selecionar</span>
               </button>
-              <button type="button" data-map-tool="ward-ally" aria-pressed="false">
-                <i>W</i><span>Ward aliada</span>
+              <button
+                type="button"
+                data-map-tool="pan"
+                aria-pressed="false"
+                title="Mover o mapa"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Mover mapa</span>
               </button>
-              <button type="button" data-map-tool="ward-control" aria-pressed="false">
-                <i>C</i><span>Control ward</span>
+              <button
+                type="button"
+                data-map-tool="champ-blue"
+                aria-pressed="false"
+                title="Posicionar campeão azul"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Campeão azul</span>
               </button>
-              <button type="button" data-map-tool="ward-enemy" aria-pressed="false">
-                <i>W</i><span>Ward inimiga</span>
+              <button
+                type="button"
+                data-map-tool="champ-red"
+                aria-pressed="false"
+                title="Posicionar campeão vermelho"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Campeão vermelho</span>
               </button>
-              <button type="button" data-map-tool="danger" aria-pressed="false">
-                <i>!</i><span>Perigo</span>
+              <button
+                type="button"
+                data-map-tool="ward-ally"
+                aria-pressed="false"
+                title="Adicionar sentinela aliada"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Ward aliada</span>
               </button>
-              <button type="button" data-map-tool="interest" aria-pressed="false">
-                <i>★</i><span>Interesse</span>
+              <button
+                type="button"
+                data-map-tool="ward-control"
+                aria-pressed="false"
+                title="Adicionar sentinela de controle"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Control ward</span>
               </button>
-              <button type="button" data-map-tool="dragon" aria-pressed="false">
-                <i>D</i><span>Dragão</span>
+              <button
+                type="button"
+                data-map-tool="ward-enemy"
+                aria-pressed="false"
+                title="Marcar ward inimiga"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Ward inimiga</span>
               </button>
-              <button type="button" data-map-tool="baron" aria-pressed="false">
-                <i>B</i><span>Barão</span>
+              <button
+                type="button"
+                data-map-tool="dragon"
+                aria-pressed="false"
+                title="Marcar covil do Dragão"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Dragão</span>
               </button>
-              <button type="button" data-map-tool="herald" aria-pressed="false">
-                <i>H</i><span>Arauto</span>
+              <button
+                type="button"
+                data-map-tool="baron"
+                aria-pressed="false"
+                title="Marcar covil do Barão"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span><span>Barão</span>
               </button>
-              <button type="button" data-map-tool="champ-blue" aria-pressed="false">
-                <i>●</i><span>Campeão azul</span>
+              <button
+                type="button"
+                data-map-tool="herald"
+                aria-pressed="false"
+                title="Marcar Arauto do Vale"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Arauto</span>
               </button>
-              <button type="button" data-map-tool="champ-red" aria-pressed="false">
-                <i>●</i><span>Campeão vermelho</span>
+              <button
+                type="button"
+                data-map-tool="route-blue"
+                aria-pressed="false"
+                title="Desenhar rota azul"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Linha azul</span>
               </button>
-              <button type="button" data-map-tool="route-blue" aria-pressed="false">
-                <i>↗</i><span>Rota azul</span>
+              <button
+                type="button"
+                data-map-tool="route-red"
+                aria-pressed="false"
+                title="Desenhar rota vermelha"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Linha vermelha</span>
               </button>
-              <button type="button" data-map-tool="route-red" aria-pressed="false">
-                <i>↗</i><span>Rota vermelha</span>
+              <button
+                type="button"
+                data-map-tool="route-neutral"
+                aria-pressed="false"
+                title="Desenhar rota neutra"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Linha neutra</span>
               </button>
-              <button type="button" data-map-tool="arrow-blue" aria-pressed="false">
-                <i>➜</i><span>Seta azul</span>
+              <button
+                type="button"
+                data-map-tool="arrow-blue"
+                aria-pressed="false"
+                title="Desenhar movimento azul"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Seta azul</span>
               </button>
-              <button type="button" data-map-tool="arrow-red" aria-pressed="false">
-                <i>➜</i><span>Seta vermelha</span>
+              <button
+                type="button"
+                data-map-tool="arrow-red"
+                aria-pressed="false"
+                title="Desenhar movimento vermelho"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Seta vermelha</span>
               </button>
-              <button type="button" data-map-tool="eraser" aria-pressed="false">
-                <i>⌫</i><span>Borracha</span>
+              <button
+                type="button"
+                data-map-tool="arrow-neutral"
+                aria-pressed="false"
+                title="Desenhar movimento neutro"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Seta neutra</span>
+              </button>
+              <button
+                type="button"
+                data-map-tool="danger"
+                aria-pressed="false"
+                title="Marcar perigo"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Perigo</span>
+              </button>
+              <button
+                type="button"
+                data-map-tool="interest"
+                aria-pressed="false"
+                title="Marcar ponto de interesse"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Interesse</span>
+              </button>
+              <button
+                type="button"
+                data-map-tool="eraser"
+                aria-pressed="false"
+                title="Apagar marcação"
+              >
+                <span class="map-tool-icon" aria-hidden="true"></span
+                ><span>Apagar</span>
               </button>
             </div>
-            <label class="map-toggle"
-              ><input id="map-show-regions" type="checkbox" checked /><span
-                >Mostrar regiões</span
-              ></label
+            <label class="tool-field map-champion-picker"
+              >Campeão da marcação<select id="map-champion-select">
+                <option value="">Selecione um campeão</option>
+              </select></label
             >
             <fieldset class="map-layer-controls">
               <legend>Camadas visíveis</legend>
               <label
-                ><input type="checkbox" data-map-layer="blue" checked /> Equipe
-                azul</label
+                ><input type="checkbox" data-map-layer="regions" checked /> Nomes
+                essenciais</label
               >
               <label
-                ><input type="checkbox" data-map-layer="red" checked /> Equipe
-                vermelha</label
+                ><input type="checkbox" data-map-layer="blue" checked /> Campeões
+                azuis</label
+              >
+              <label
+                ><input type="checkbox" data-map-layer="red" checked /> Campeões
+                vermelhos</label
               >
               <label
                 ><input type="checkbox" data-map-layer="vision" checked /> Visão</label
               >
               <label
-                ><input type="checkbox" data-map-layer="objectives" checked /> Objetivos
-                e alertas</label
+                ><input type="checkbox" data-map-layer="objectives" checked />
+                Objetivos</label
+              >
+              <label
+                ><input type="checkbox" data-map-layer="alerts" checked />
+                Alertas</label
               >
               <label
                 ><input type="checkbox" data-map-layer="routes" checked /> Rotas</label
               >
             </fieldset>
+            <label class="map-toggle map-all-regions-toggle"
+              ><input id="map-show-all-regions" type="checkbox" /><span
+                >Mostrar todas as regiões</span
+              ></label
+            >
             <p class="tool-hint">
               Rotas: escolha uma cor e arraste pelo mapa. Mover: selecione a mão e
               arraste.
@@ -181,6 +313,21 @@
                   Limpar mapa
                 </button>
               </div>
+              <label
+                class="map-line-weight"
+                title="Ajustar a espessura de linhas e setas"
+              >
+                Espessura
+                <input
+                  id="map-route-weight"
+                  type="range"
+                  min="1"
+                  max="4"
+                  step="0.5"
+                  value="2"
+                  aria-label="Espessura das linhas e setas"
+                /><span id="map-route-weight-value">2</span>
+              </label>
             </div>
             <div
               id="map-viewport"
