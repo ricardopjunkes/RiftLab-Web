@@ -1,110 +1,337 @@
-# RiftLab
+# ⚔️ Rift Lab
 
-Projeto de portfólio para montar composições de League of Legends, simular um draft competitivo, explorar atributos de matchups, consultar os campeões oficiais via Data Dragon, simular partidas e salvar/compartilhar drafts.
+### Plataforma interativa de análise, estratégia e aprendizado de League of Legends
 
-## Tecnologias
+**Rift Lab** é uma aplicação web desenvolvida para reunir ferramentas de estratégia, análise de campeões, criação de builds e simulação de partidas de League of Legends em um único ambiente.
 
-- **Frontend:** HTML, CSS e JavaScript puro (`frontend/`). Não usa TypeScript nem framework.
-- **API:** Node.js + Express (ackend/server.js).
-- **Estilo:** Prettier com largura de linha de 88 caracteres (
-  pm run format).
-- **Banco:** PostgreSQL no Neon. A API cria a tabela ao iniciar usando `backend/schema.sql`.
-- **Deploy sugerido:** Vercel para o frontend, Render para a API e Neon para o PostgreSQL.
+O projeto combina dados oficiais da Riot Games, interfaces interativas e recursos de planejamento estratégico para oferecer uma experiência acessível tanto para jogadores iniciantes quanto para quem deseja aprofundar seus conhecimentos sobre o jogo.
 
-O catálogo e as imagens dos campeões continuam vindo do Data Dragon da Riot diretamente no navegador. O banco guarda somente composições escolhidas pelo usuário. A simulação continua rodando no navegador.
+🌐 **[Acessar Rift Lab](https://riftlab-web-frontend.vercel.app/)**
 
-## Estrutura
+💻 **[Repositório no GitHub](https://github.com/ricardopjunkes/RiftLab-Web)**
+
+---
+
+## 🎯 Objetivo do projeto
+
+O Rift Lab foi desenvolvido com o objetivo de aplicar conhecimentos de desenvolvimento web na construção de uma plataforma que reúne diferentes funcionalidades em um único sistema.
+
+O projeto explora conceitos de:
+
+- Desenvolvimento frontend e backend.
+- Integração com APIs e dados externos.
+- Manipulação e validação de dados.
+- Persistência em banco de dados e armazenamento local.
+- Construção de interfaces responsivas.
+- Organização e reutilização de código.
+- Simulações e algoritmos de análise.
+- Experiência do usuário (UX/UI).
+
+---
+
+## 🚀 Funcionalidades
+
+### 🧙 Guia de Campeões
+
+Explore informações dos campeões de League of Legends utilizando dados oficiais do Data Dragon.
+
+- Pesquisa de campeões.
+- Informações e atributos.
+- Habilidades.
+- Imagens oficiais.
+- Navegação interativa.
+
+### ⚔️ Draft Simulator
+
+Ferramenta para simular a fase de seleção e banimento de campeões.
+
+- Escolhas e banimentos.
+- Equipes azul e vermelha.
+- Organização por rotas.
+- Prevenção de seleções duplicadas.
+- Análise das composições.
+- Sugestões estratégicas baseadas em regras.
+
+### 🛡️ Build Lab
+
+Laboratório para criar e analisar builds de campeões.
+
+- Seleção de campeões.
+- Catálogo de itens.
+- Inventário de até seis itens.
+- Cálculo de atributos disponíveis.
+- Custo total em ouro.
+- Salvamento de builds no navegador.
+
+### 📊 Build Comparator
+
+Compare duas builds e visualize suas diferenças.
+
+- Comparação de atributos.
+- Comparação de custos.
+- Importação de builds salvas.
+- Análise visual das diferenças.
+- Reutilização dos cálculos do Build Lab.
+
+### ✨ Rune Lab
+
+Ferramenta para criar páginas personalizadas de runas.
+
+- Seleção das árvores de runas.
+- Configuração de runas principais e secundárias.
+- Fragmentos de atributos.
+- Validação de combinações.
+- Salvamento local das configurações.
+
+### 🗺️ Rift Map
+
+Mapa interativo de Summoner's Rift para planejamento estratégico.
+
+- Posicionamento de campeões.
+- Marcadores de visão e objetivos.
+- Desenho de rotas e movimentações.
+- Zoom e navegação pelo mapa.
+- Camadas de visualização.
+- Salvamento de estratégias.
+- Exportação em PNG.
+
+### 🔍 Matchup Explorer
+
+Ferramenta de comparação entre campeões.
+
+- Comparação de atributos.
+- Análise por rota.
+- Informações sobre habilidades.
+- Visualização de características dos campeões.
+
+As análises utilizam dados disponíveis e regras próprias, sem apresentar previsões como resultados garantidos.
+
+### 🎮 Simulação de Partidas
+
+Simulação recreativa de confrontos entre equipes.
+
+- Montagem de equipes.
+- Simulação de acontecimentos da partida.
+- Evolução dos confrontos.
+- Visualização de resultados.
+- Análise simplificada das composições.
+
+A simulação é baseada em modelos e regras aproximadas, não reproduzindo partidas reais.
+
+### 🧠 Adivinhe o Campeão
+
+Minigame interativo de conhecimento sobre League of Legends.
+
+- Desafios de identificação.
+- Sistema de tentativas.
+- Pontuação.
+- Histórico de resultados.
+- Acompanhamento de sequência de acertos.
+
+### 🎓 Rift Lab Academy
+
+Área de aprendizado com desafios relacionados ao universo de League of Legends.
+
+- Perguntas e desafios.
+- Sistema de pontuação.
+- Acompanhamento de progresso.
+- Atividades interativas.
+
+---
+
+## 🛠️ Tecnologias utilizadas
+
+| Tecnologia | Utilização |
+|---|---|
+| HTML5 | Estrutura das páginas |
+| CSS3 | Estilização e responsividade |
+| JavaScript | Interatividade e lógica do frontend |
+| Node.js | Ambiente de execução do backend |
+| Express.js | API e rotas do servidor |
+| PostgreSQL | Persistência de dados |
+| Neon | Hospedagem do banco PostgreSQL |
+| Riot Data Dragon | Dados e imagens oficiais do jogo |
+| LocalStorage | Armazenamento de configurações locais |
+| Git e GitHub | Versionamento de código |
+| Vercel | Publicação do frontend |
+| Render | Infraestrutura prevista para a API |
+
+---
+
+## 🏗️ Arquitetura
+
+O projeto está organizado em frontend, backend e testes.
 
 ```text
-frontend/
-  index.html       página
-  quiz.html        minigame Adivinhe o Campeão
-  academy.html    desafios da Rift Lab Academy
-  styles.css       estilos
-  app.js           busca, composição e simulação
-  draft-explorer.js draft de picks/bans e comparação de matchups
-  quiz.js          pontuação, sequência e histórico do minigame
-  academy.js       desafios e pontuação geral da Academy
-  config.js        endereço público da API
-backend/
-  server.js        API para salvar e carregar composições
-  schema.sql       tabela PostgreSQL
-package.json       dependências e comando da API
-render.yaml        configuração do serviço no Render
-vercel.json        saída estática do frontend
-.env.example       variáveis locais de exemplo
+RiftLab-Web/
+├── frontend/
+│   ├── index.html
+│   ├── build-lab.html
+│   ├── simulation.html
+│   ├── quiz.html
+│   ├── academy.html
+│   ├── app.js
+│   ├── build-core.js
+│   ├── config.js
+│   └── ...
+│
+├── backend/
+│   ├── server.js
+│   └── schema.sql
+│
+├── tests/
+├── .env.example
+├── package.json
+├── render.yaml
+├── vercel.json
+└── README.md
 ```
 
-## Rodar localmente
+**Frontend:** responsável pela interface, interatividade, visualização de dados e ferramentas utilizadas pelo jogador.
 
-1. Instale Node.js 20 ou mais recente e PostgreSQL (ou crie um banco no Neon).
-2. Na raiz do projeto, instale as dependências: `npm install`.
-3. Copie `.env.example` para `.env` e configure `DATABASE_URL` com a connection string do Neon. Mantenha `sslmode=require` no endereço fornecido pelo Neon.
-4. Inicie a API com `npm start`. Ela escuta em `http://localhost:3000` e cria a tabela automaticamente.
-5. Em outro terminal, sirva `frontend/` por HTTP. Com Python: `python -m http.server 8000 --directory frontend`.
-6. Acesse `http://localhost:8000`. `config.js` detecta o ambiente local e aponta para `http://localhost:3000`.
+**Backend:** API desenvolvida com Node.js e Express para operações como persistência e compartilhamento de composições.
 
-Não abra `index.html` usando `file://`; o navegador precisa servir a página por HTTP para as chamadas funcionarem.
+**Banco de dados:** PostgreSQL, utilizado para armazenar informações das composições compartilhadas.
 
-## Publicar
+**Dados externos:** o Data Dragon fornece informações oficiais sobre campeões, itens e runas.
 
-### 1. GitHub
+**Armazenamento local:** configurações de builds, desafios e estratégias podem ser mantidas no navegador por meio do LocalStorage.
 
-Crie um repositório vazio no GitHub. Na pasta raiz deste projeto:
+---
+
+## 💻 Como executar localmente
+
+### Pré-requisitos
+
+- Node.js 20 ou superior.
+- npm.
+- Git.
+- Banco PostgreSQL ou instância no Neon para os recursos que dependem da API.
+
+### 1. Clone o repositório
 
 ```bash
-git init -b main
-git add .
-git commit -m "feat: prepara o RiftLab para deploy"
-git remote add origin https://github.com/SEU-USUARIO/SEU-REPOSITORIO.git
-git push -u origin main
+git clone https://github.com/ricardopjunkes/RiftLab-Web.git
 ```
 
-Nunca adicione o arquivo `.env` ou a senha do Neon ao repositório. O `.gitignore` já exclui esses arquivos.
+### 2. Acesse o diretório
 
-### 2. Neon
+```bash
+cd RiftLab-Web
+```
 
-Crie um projeto PostgreSQL no Neon e copie a connection string. A tabela `compositions` é criada automaticamente pela API no primeiro início. Configure essa string como `DATABASE_URL` no serviço da API, sem colocá-la no frontend.
+### 3. Instale as dependências
 
-### 3. Render (API)
+```bash
+npm install
+```
 
-Conecte o repositório no Render e crie um **Web Service**:
+### 4. Configure as variáveis de ambiente
 
-- Build command: `npm install`
-- Start command: `npm start`
-- Health check path: `/api/health`
-- Environment variables: `DATABASE_URL` (connection string do Neon) e `FRONTEND_ORIGIN` (URL pública exata da Vercel, por exemplo `https://riftlab.vercel.app`).
+Copie o arquivo `.env.example` para `.env` e configure as variáveis necessárias, incluindo a conexão com o banco de dados.
 
-O `render.yaml` deste projeto já declara esses campos; escolha **Blueprint** para usá-lo ou preencha os valores no painel. Serviços gratuitos do Render podem desligar após inatividade e demorar para responder à primeira chamada. O plano gratuito do Render Postgres expira; por isso o projeto usa Neon para o banco.
+Nunca publique credenciais ou informações sensíveis no GitHub.
 
-### 4. Vercel (frontend)
+### 5. Inicie o backend
 
-Importe o repositório do GitHub na Vercel com **Root Directory** na raiz do repositório, Framework **Other** e sem build command. O `vercel.json` publica a pasta `frontend` como site estático.
+```bash
+npm start
+```
 
-Depois que a API estiver no ar, abra `frontend/config.js`, defina `window.RIFTLAB_API_URL` para a URL HTTPS do Render (sem barra no final), faça commit e envie ao GitHub. A Vercel publica a atualização automaticamente.
+A API utiliza, por padrão, o endereço:
 
-## Compartilhamento e dados
+```text
+http://localhost:3000
+```
 
-“Salvar e compartilhar composição” grava os IDs dos campeões e as rotas no banco e copia um link com código aleatório. Quem tiver o link consegue abrir a composição. Não há login: não salve informações pessoais no draft. A API limita a criação de links para reduzir spam.
+### 6. Execute o frontend
 
-## Draft Simulator e Matchup Explorer
+Em outro terminal:
 
-O Draft Simulator organiza os turnos de banimentos e escolhas para os lados azul e vermelho, impede campeões duplicados, permite atribuir picks às cinco rotas e sugere opções por cobertura de rota, classes e diversidade de dano. Ao final, analisa as equipes com o modelo de composição já usado no Rift Lab. As sugestões e análises são heurísticas do projeto, não previsões de partidas.
+```bash
+python -m http.server 8000 --directory frontend
+```
 
-O Matchup Explorer compara dois campeões por rota usando atributos e descrições de habilidades do Data Dragon do patch atual. Os recortes de início, meio e fim mostram atributos base ou crescimento por nível e contagens simples de termos das habilidades. Eles não representam medições reais de força por fase. O Riot Data Dragon não fornece taxas de vitória de confronto, então a ferramenta não inventa winrates nem afirma qual campeão venceria.
+Acesse:
 
-## Build Comparator, Rune Lab e Rift Map
+```text
+http://localhost:8000
+```
 
-- **Build Comparator** usa o mesmo catálogo validado e cálculo do Build Lab, permite montar duas builds independentes, importar builds salvas localmente e comparar custo e atributos. IDs alternativos de registros comprovadamente equivalentes são associados ao item canônico para manter builds antigas carregáveis.
-- **Rune Lab** carrega árvores e runas do Data Dragon atual, valida a seleção principal/secundária e os fragmentos de atributos, e salva até 30 páginas no LocalStorage deste navegador. Os fragmentos aparecem na configuração, mas não são somados aos atributos de item do Build Lab.
-- **Rift Map** usa a imagem de Summoner’s Rift fornecida como referência pelo proprietário do projeto, com coordenadas normalizadas para marcar visão, campeões e objetivos, desenhar rotas, controlar camadas, desfazer/refazer, salvar estratégias no LocalStorage e exportar PNG. Estratégias legadas são sinalizadas como v1 e não são reposicionadas automaticamente.
-- **Simulação de partidas** abre em `simulation.html`, que reúne o montador de equipes e a simulação numa rota direta, sem depender de uma âncora escondida na home.
-- `frontend/build-core.js` centraliza o carregamento e o cálculo compartilhado de itens para evitar divergência entre Build Lab e Comparator.
+O frontend deve ser servido por HTTP para que as integrações funcionem corretamente.
 
-## Limitações
+---
 
-- Taxas de confronto não são extraídas do OP.GG; a página abre o OP.GG para consulta manual.
-- A simulação é recreativa e probabilística, não reproduz partidas profissionais reais.
-- Pontuação, histórico e sequência dos desafios ficam no LocalStorage do navegador usado; não sincronizam entre dispositivos.
-- Ouro, níveis, ondas e torres da simulação são uma aproximação didática baseada no tempo, nas ondas e na vantagem estimada do draft; não são dados ao vivo nem estatísticas profissionais.
-- A API precisa estar acessível pela internet para salvar e abrir links compartilhados.
+## 📡 Integração com dados oficiais
+
+O Rift Lab utiliza o **Riot Games Data Dragon** para consultar informações disponibilizadas oficialmente sobre League of Legends.
+
+Entre os dados utilizados estão:
+
+- Campeões.
+- Imagens.
+- Habilidades.
+- Atributos.
+- Itens.
+- Runas.
+
+As ferramentas de análise e simulação também utilizam regras e cálculos desenvolvidos no próprio projeto.
+
+Os resultados dessas ferramentas não devem ser interpretados como estatísticas competitivas oficiais ou previsões garantidas.
+
+---
+
+## 📱 Interface e experiência do usuário
+
+A interface foi desenvolvida com uma identidade visual inspirada no universo de League of Legends, priorizando:
+
+- Tema escuro.
+- Destaques em verde-limão.
+- Navegação entre ferramentas.
+- Cards interativos.
+- Organização de informações.
+- Layouts responsivos.
+- Feedback visual durante interações.
+
+O objetivo é oferecer uma experiência consistente entre as diferentes ferramentas da plataforma.
+
+---
+
+## 🔮 Evolução do projeto
+
+O Rift Lab é um projeto em desenvolvimento contínuo.
+
+Entre as melhorias planejadas estão:
+
+- Refinamento das ferramentas de estratégia.
+- Evolução dos cálculos de builds.
+- Melhorias na simulação de partidas.
+- Expansão dos desafios da Academy.
+- Aperfeiçoamento do mapa tático.
+- Melhorias de acessibilidade e responsividade.
+- Ampliação dos testes automatizados.
+- Otimizações de desempenho.
+
+---
+
+## ⚠️ Aviso legal
+
+Rift Lab é um projeto independente, desenvolvido para fins educacionais e de portfólio.
+
+League of Legends, Riot Games, nomes de campeões, imagens e demais elementos relacionados pertencem aos seus respectivos titulares.
+
+Este projeto não é afiliado, patrocinado ou endossado pela Riot Games.
+
+---
+
+## 👨‍💻 Desenvolvimento
+
+Projeto desenvolvido por **Ricardo Junkes**, com foco no aprendizado e na aplicação prática de tecnologias de desenvolvimento web.
+
+**GitHub:** [ricardopjunkes](https://github.com/ricardopjunkes)
+
+**Aplicação:** [Rift Lab](https://riftlab-web-frontend.vercel.app/)
+
+---
+
+**Rift Lab — Explore campeões. Desenvolva estratégias. Domine o Rift.**
