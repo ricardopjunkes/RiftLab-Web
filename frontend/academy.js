@@ -55,7 +55,6 @@ function makeQuestion() {
       .then(({ data }) => {
         const detail = data[champ.id];
         const spell = key === 'passive' ? detail.passive : choose(detail.spells);
-        const correct = `${champ.name} · ${spell.name}`;
         const others = academy.champs
           .filter((c) => c.id !== champ.id)
           .sort(() => Math.random() - 0.5)
@@ -63,10 +62,7 @@ function makeQuestion() {
           .map((c) => c.name);
         return {
           type: key === 'passive' ? 'Passiva' : 'Habilidade',
-          question: `${key === 'passive' ? 'Qual campeão possui esta passiva?' : 'Qual campeão usa esta habilidade?'} “${spell.name}” — ${spell.description
-            .replace(/<[^>]*>/g, ' ')
-            .replace(/\s+/g, ' ')
-            .slice(0, 180)}`,
+          question: `${key === 'passive' ? 'Qual campeão possui esta passiva?' : 'Qual campeão usa esta habilidade?'} “${spell.name}”`,
           answer: champ.name,
           options: [champ.name, ...others],
           explanation: `${spell.name} é ${key === 'passive' ? `a passiva de ${champ.name}` : `uma habilidade de ${champ.name}`}.`,
