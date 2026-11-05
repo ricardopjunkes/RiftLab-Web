@@ -219,6 +219,11 @@ test('rótulos de Rio e Meio apontam para posições separadas no mapa', () => {
   const map = createHarness();
   const mid = map.regionLabels.find(([name]) => name === 'Meio');
   const river = map.regionLabels.find(([name]) => name === 'Rio');
-  assert.deepEqual(JSON.parse(JSON.stringify([mid[1], mid[2]])), [625, 365]);
-  assert.deepEqual(JSON.parse(JSON.stringify([river[1], river[2]])), [590, 590]);
+  const dragonPit = map.regionLabels.find(([name]) => name === 'Covil do Dragão');
+  assert.deepEqual(JSON.parse(JSON.stringify([mid[1], mid[2]])), [560, 430]);
+  assert.deepEqual(JSON.parse(JSON.stringify([river[1], river[2]])), [620, 526]);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify([dragonPit[1], dragonPit[2]])),
+    [590, 590],
+  );
 });

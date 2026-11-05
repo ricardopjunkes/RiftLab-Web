@@ -1349,6 +1349,28 @@
   width: 23px;
   height: 23px;
 }
+.map-marker.ally,
+.map-marker.control,
+.map-marker.enemy {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #0a1019;
+}
+.map-marker.ally {
+  border-color: #7dca91;
+}
+.map-marker.control {
+  border-color: #d9c77c;
+}
+.map-marker.enemy {
+  border-color: #e8878b;
+}
+.map-marker.ally img,
+.map-marker.control img,
+.map-marker.enemy img {
+  object-fit: contain;
+}
 .map-marker.danger,
 .map-marker.interest {
   width: 17px;

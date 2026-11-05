@@ -28,13 +28,13 @@ const markerTypes = {
 };
 const regionLabels = [
   ['Topo', 500, 104, true],
-  ['Meio', 625, 365, true],
+  ['Meio', 560, 430, true],
   ['Rota inferior', 535, 902, true],
   ['Selva azul', 278, 704, false],
   ['Selva vermelha', 724, 298, false],
-  ['Rio', 590, 590, true],
+  ['Rio', 620, 526, true],
   ['Covil do Barão', 390, 280, true],
-  ['Covil do Dragão', 620, 526, true],
+  ['Covil do Dragão', 590, 590, true],
   ['Base azul', 148, 846, false],
   ['Base vermelha', 752, 116, false],
 ];
@@ -268,6 +268,10 @@ function markerMarkup(marker, data) {
     const champion = mapState.champions.find((entry) => entry.id === marker.champion);
     if (champion)
       return `<img src="https://ddragon.leagueoflegends.com/cdn/${mapState.patch}/img/champion/${escapeMap(champion.image.full)}" alt="" loading="lazy" />`;
+  }
+  if (marker.type.startsWith('ward-') && mapState.patch) {
+    const itemId = marker.type === 'ward-control' ? '2055' : '3340';
+    return `<img src="https://ddragon.leagueoflegends.com/cdn/${mapState.patch}/img/item/${itemId}.png" alt="" loading="lazy" />`;
   }
   const shapes = {
     ward: '<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><circle cx="12" cy="9" r="2"/>',
@@ -855,7 +859,9 @@ async function exportMap() {
         y,
         marker.type.startsWith('champ-') || marker.type.startsWith('generic-')
           ? 15
-          : 10,
+          : marker.type.startsWith('ward-')
+            ? 12
+            : 10,
         0,
         Math.PI * 2,
       );
@@ -883,6 +889,20 @@ async function exportMap() {
           } catch {
             // Keep the team-colored marker when a portrait cannot be loaded.
           }
+        }
+      } else if (marker.type.startsWith('ward-')) {
+        try {
+          const wardIcon = new Image();
+          wardIcon.crossOrigin = 'anonymous';
+          const itemId = marker.type === 'ward-control' ? '2055' : '3340';
+          wardIcon.src = `https://ddragon.leagueoflegends.com/cdn/${mapState.patch}/img/item/${itemId}.png`;
+          await wardIcon.decode();
+          context.drawImage(wardIcon, x - 12, y - 12, 24, 24);
+        } catch {
+          context.fillStyle = color;
+          context.beginPath();
+          context.arc(x, y, 2.5, 0, Math.PI * 2);
+          context.fill();
         }
       } else if (marker.type.startsWith('generic-')) {
         context.strokeStyle = color;
