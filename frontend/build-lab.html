@@ -50,19 +50,18 @@
         <div class="topright">LABORATÓRIO DE BUILDS</div>
       </header>
       <main class="build-main">
-        <a class="build-back" href="./index.html#tools">← Voltar às ferramentas</a>
         <section class="build-hero">
           <div>
-            <div class="eyebrow">Rift Lab · Ferramentas de estratégia</div>
+            <div class="eyebrow">SUMMONER’S RIFT · ESTÚDIO DE ESTRATÉGIA</div>
             <h1>Build <span>Lab</span></h1>
-            <p>
-              Monte uma build, confira os atributos diretos dos itens e planeje suas
-              compras.
-            </p>
+            <p>Crie seu equipamento. Compare custos e atributos em um só lugar.</p>
           </div>
-          <span class="patch" id="build-patch" aria-live="polite"
-            >Carregando dados oficiais…</span
-          >
+          <div class="build-hero-meta">
+            <span class="build-live"><i></i> BUILDER ATIVO</span>
+            <span class="patch" id="build-patch" aria-live="polite"
+              >Carregando dados oficiais…</span
+            >
+          </div>
         </section>
         <div class="build-layout">
           <section
@@ -71,9 +70,20 @@
           >
             <div class="build-panel-heading">
               <div>
-                <span class="build-step">01 · CAMPEÃO</span>
-                <h2 id="build-champion-title">Escolha seu campeão</h2>
+                <span class="build-step">01 / PICK</span>
+                <h2 id="build-champion-title">Campeão</h2>
               </div>
+            </div>
+            <div class="build-selected-champion" id="build-selected-champion">
+              <div class="build-champion-empty">
+                <span class="build-empty-emblem" aria-hidden="true">✦</span>
+                <strong>Seu próximo pick</strong>
+                <span>Escolha um campeão para começar a build.</span>
+              </div>
+            </div>
+            <div class="build-roster-heading">
+              <span>ELENCO</span>
+              <span id="build-champion-count">Todos os campeões</span>
             </div>
             <label class="build-search"
               ><span aria-hidden="true">⌕</span
@@ -92,11 +102,6 @@
             >
               <div class="build-loading">Carregando campeões oficiais…</div>
             </div>
-            <div class="build-selected-champion" id="build-selected-champion">
-              <div class="build-champion-empty">
-                Selecione um campeão para conferir os atributos base.
-              </div>
-            </div>
           </section>
 
           <section
@@ -105,10 +110,11 @@
           >
             <div class="build-panel-heading">
               <div>
-                <span class="build-step">02 · INVENTÁRIO</span>
+                <span class="build-step">02 / EQUIPAMENTO</span>
                 <h2 id="build-inventory-title">Sua build</h2>
               </div>
               <button class="build-quiet-button" id="build-clear" type="button">
+                <span aria-hidden="true">↺</span>
                 Limpar itens
               </button>
             </div>
@@ -119,7 +125,7 @@
             ></div>
             <div class="build-catalog-head">
               <div>
-                <span class="build-step">CATÁLOGO OFICIAL</span>
+                <span class="build-step">LOJA · SUMMONER’S RIFT</span>
                 <h3>Itens de Summoner’s Rift</h3>
               </div>
               <span id="build-item-count">Carregando…</span>
@@ -163,28 +169,28 @@
           >
             <div class="build-panel-heading">
               <div>
-                <span class="build-step">03 · ATRIBUTOS</span>
+                <span class="build-step">03 / ANÁLISE</span>
                 <h2 id="build-stats-title">Resumo da build</h2>
               </div>
             </div>
             <div class="build-total-cost">
-              <span>Custo total</span
+              <span><i aria-hidden="true">◈</i> CUSTO TOTAL</span
               ><strong id="build-total-cost">0 <small>ouro</small></strong>
             </div>
             <div class="build-stats-block">
-              <h3>Atributos base</h3>
+              <h3><span>01</span> Atributos base</h3>
               <div id="build-base-stats" class="build-stat-list">
                 <p>Selecione um campeão.</p>
               </div>
             </div>
             <div class="build-stats-block">
-              <h3>Bônus dos itens</h3>
+              <h3><span>02</span> Bônus dos itens</h3>
               <div id="build-bonus-stats" class="build-stat-list">
                 <p>Adicione itens para ver os bônus.</p>
               </div>
             </div>
             <div class="build-stats-block build-total-block">
-              <h3>Total estimado</h3>
+              <h3><span>03</span> Total estimado</h3>
               <div id="build-total-stats" class="build-stat-list">
                 <p>Selecione um campeão.</p>
               </div>

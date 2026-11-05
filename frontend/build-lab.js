@@ -22,6 +22,7 @@ const BUILD_STATS = [
 const ui = {
   patch: document.querySelector('#build-patch'),
   champions: document.querySelector('#build-champions'),
+  championCount: document.querySelector('#build-champion-count'),
   championSearch: document.querySelector('#build-champion-search'),
   selectedChampion: document.querySelector('#build-selected-champion'),
   items: document.querySelector('#build-items'),
@@ -53,6 +54,7 @@ const state = {
   itemById: new Map(),
   slots: Array(BUILD_SLOT_COUNT).fill(null),
   activeSlot: 0,
+  recentSlot: -1,
   saved: readSavedBuilds(),
   loadError: false,
 };
@@ -179,6 +181,9 @@ function renderChampions() {
   const filtered = state.champions.filter((champion) =>
     normalize(champion.name).includes(query),
   );
+  ui.championCount.textContent = query
+    ? `${filtered.length} ${filtered.length === 1 ? 'resultado' : 'resultados'}`
+    : `${state.champions.length} disponíveis`;
   ui.champions.innerHTML = filtered.length
     ? filtered
         .map(
@@ -233,8 +238,21 @@ function renderSelectedChampion() {
   const champion = state.champion;
   const detail = state.championDetail;
   const artUrl = `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.id}_0.jpg`;
-  ui.selectedChampion.innerHTML = `<div class="build-selected-art" style="--build-champion-art:url('${artUrl}')"></div><div class="build-selected-copy"><img src="https://ddragon.leagueoflegends.com/cdn/${state.patch}/img/champion/${escapeHtml(champion.image.full)}" alt=""><div><span class="build-step">${escapeHtml(champion.tags.join(' · '))}</span><h3>${escapeHtml(champion.name)}</h3><p>${escapeHtml(champion.title)}</p></div></div><div class="build-champion-level">Atributos base do nível 1, sem runas ou progressão.</div>`;
+  ui.selectedChampion.innerHTML = `<div class="build-selected-art" role="img" aria-label="Arte oficial de ${escapeHtml(champion.name)}" style="--build-champion-art:url('${artUrl}')"></div><div class="build-selected-copy"><img src="https://ddragon.leagueoflegends.com/cdn/${state.patch}/img/champion/${escapeHtml(champion.image.full)}" alt=""><div><span class="build-champion-classes">${escapeHtml(champion.tags.map(localizeClass).join(' · '))}</span><h3>${escapeHtml(champion.name)}</h3><p>${escapeHtml(champion.title)}</p></div></div><div class="build-champion-level">Nível 1 <span>·</span> atributos base oficiais</div>`;
   ui.baseStats.innerHTML = renderStatRows(baseStats(detail));
+}
+
+function localizeClass(role) {
+  return (
+    {
+      Assassin: 'Assassino',
+      Fighter: 'Lutador',
+      Mage: 'Mago',
+      Marksman: 'Atirador',
+      Support: 'Suporte',
+      Tank: 'Tanque',
+    }[role] || role
+  );
 }
 
 function baseStats(detail) {
@@ -381,8 +399,13 @@ function addItem(id) {
   }
   state.slots[target] = item;
   state.activeSlot = Math.min(target + 1, BUILD_SLOT_COUNT - 1);
+  state.recentSlot = target;
   notifyBuild(`${item.name} adicionado à build.`);
   renderSlots();
+  window.setTimeout(() => {
+    ui.slots.querySelector('.build-slot-recent')?.classList.remove('build-slot-recent');
+    state.recentSlot = -1;
+  }, 620);
   renderStats();
 }
 
@@ -391,9 +414,9 @@ function renderSlots() {
     .map((item, index) =>
       item
         ? `
-    <div class="build-slot filled ${state.activeSlot === index ? 'active' : ''}">
+    <div class="build-slot filled ${state.activeSlot === index ? 'active' : ''} ${state.recentSlot === index ? 'build-slot-recent' : ''}">
       <button type="button" class="build-slot-select" data-slot-index="${index}" aria-label="Selecionar espaço ${index + 1}: ${escapeHtml(item.name)}"><img src="https://ddragon.leagueoflegends.com/cdn/${state.patch}/img/item/${escapeHtml(item.image.full)}" alt="${escapeHtml(item.name)}"><span class="build-slot-number">${index + 1}</span></button>
-      <span class="build-slot-name">${escapeHtml(item.name)}</span><button class="build-slot-remove" type="button" data-remove-slot="${index}" aria-label="Remover ${escapeHtml(item.name)}">×</button>
+      <span class="build-slot-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span><button class="build-slot-remove" type="button" data-remove-slot="${index}" aria-label="Remover ${escapeHtml(item.name)}">×</button>
     </div>`
         : `
     <button class="build-slot empty ${state.activeSlot === index ? 'active' : ''}" type="button" data-slot-index="${index}" aria-label="Selecionar espaço vazio ${index + 1}"><span class="build-slot-plus">＋</span><small>Espaço ${index + 1}</small></button>`,
@@ -486,7 +509,7 @@ function renderStats() {
                 itemKey === 'PercentLifeStealMod'
               ? 'percent'
               : 'flat';
-        return `<div class="build-stat-row"><span>${name}</span><strong>${formatStat(total, format)}</strong></div>`;
+        return `<div class="build-stat-row ${bonus > 0 ? 'is-increased' : ''}"><span>${statIcon(name)}${escapeHtml(name)}</span><strong>${formatStat(total, format)}</strong></div>`;
       })
       .join('') || '<p>Adicione itens para visualizar os totais.</p>';
   ui.save.disabled = false;
@@ -506,10 +529,41 @@ function renderStatRows(rows, bonus = false) {
     rows
       .map(
         ([name, value, format]) =>
-          `<div class="build-stat-row"><span>${escapeHtml(name)}</span><strong>${bonus && value > 0 ? '+' : ''}${formatStat(value, format)}</strong></div>`,
+          `<div class="build-stat-row ${bonus && value > 0 ? 'is-bonus is-increased' : ''}"><span>${statIcon(name)}${escapeHtml(name)}</span><strong>${bonus && value > 0 ? '+' : ''}${formatStat(value, format)}</strong></div>`,
       )
       .join('') || '<p>Sem atributos disponíveis.</p>'
   );
+}
+
+function statIcon(name) {
+  const normalized = normalize(name);
+  const paths = [
+    [
+      /dano de ataque|poder de habilidade/,
+      'M14.5 3.5 20 9l-7.5 7.5-3.2-3.2L3 19l2-6.3L14.5 3.5Z',
+    ],
+    [
+      /vida/,
+      'M12 20s-7.5-4.4-7.5-10A4.2 4.2 0 0 1 12 7a4.2 4.2 0 0 1 7.5 3c0 5.6-7.5 10-7.5 10Z',
+    ],
+    [
+      /armadura|resistencia magica/,
+      'M12 3 19 6v5c0 4.6-3 8-7 10-4-2-7-5.4-7-10V6l7-3Z',
+    ],
+    [
+      /velocidade|movimento/,
+      'M3 15.5c2.5-3.1 5.2-4.7 8-4.7 2.4 0 4.1 1 5.2 2.5L21 8M3 19h4M2 12h4M7 8h3',
+    ],
+    [/mana/, 'M12 3s6 6.8 6 11a6 6 0 0 1-12 0c0-4.2 6-11 6-11Z'],
+    [/aceleracao/, 'M12 7v5l3 2M12 3a9 9 0 1 0 9 9M12 3v3m9-3v6h-6'],
+    [/critico/, 'm12 2 2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5L12 2Z'],
+    [
+      /roubo de vida/,
+      'M12 20s-7.5-4.4-7.5-10A4.2 4.2 0 0 1 12 7a4.2 4.2 0 0 1 7.5 3c0 5.6-7.5 10-7.5 10Z',
+    ],
+  ];
+  const match = paths.find(([pattern]) => pattern.test(normalized));
+  return `<svg class="build-stat-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="${match?.[1] || 'M12 3 4 7v5c0 4 3.2 7.3 8 9 4.8-1.7 8-5 8-9V7l-8-4Z'}"/></svg>`;
 }
 
 function formatStat(value, format = 'flat') {
