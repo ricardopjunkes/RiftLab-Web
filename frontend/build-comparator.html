@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#080c14" />
+    <title>Build Comparator — Rift Lab</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./theme.css" />
+    <link rel="stylesheet" href="./tool-pages.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand" href="./index.html" aria-label="Rift Lab — início"
+          ><span class="brandmark">✦</span><span>rift<em>lab</em></span></a
+        >
+        <nav class="nav" aria-label="Navegação principal">
+          <a href="./index.html#tools">Início</a>
+          <details class="nav-group">
+            <summary>Campeões</summary>
+            <div class="nav-dropdown">
+              <a href="./index.html#guide">Galeria e guia</a
+              ><a href="./index.html#matchup-explorer">Matchup Explorer</a>
+            </div>
+          </details>
+          <details class="nav-group">
+            <summary>Estratégia</summary>
+            <div class="nav-dropdown">
+              <a href="./index.html#builder">Composições</a
+              ><a href="./index.html#draft-simulator">Draft Simulator</a
+              ><a href="./build-lab.html">Build Lab</a
+              ><a class="active" href="./build-comparator.html" aria-current="page"
+                >Build Comparator</a
+              ><a href="./rune-lab.html">Rune Lab</a>
+            </div>
+          </details>
+          <details class="nav-group">
+            <summary>Simulações</summary>
+            <div class="nav-dropdown">
+              <a href="./index.html#simulator">Simulação de partidas</a
+              ><a href="./rift-map.html">Rift Map</a>
+            </div>
+          </details>
+          <details class="nav-group">
+            <summary>Academia</summary>
+            <div class="nav-dropdown">
+              <a href="./quiz.html">Adivinhe o Campeão</a
+              ><a href="./academy.html">Academy</a>
+            </div>
+          </details>
+        </nav>
+        <div class="topright">COMPARE AS ESCOLHAS</div>
+      </header>
+      <main class="tool-page">
+        <section class="tool-hero">
+          <div class="eyebrow">ESTÚDIO DE ESTRATÉGIA · ITEMIZAÇÃO</div>
+          <h1>Build <span>Comparator</span></h1>
+          <p>Compare duas configurações com os mesmos dados oficiais do Build Lab.</p>
+          <div class="tool-meta">
+            <span id="cmp-patch" class="patch">Carregando Data Dragon…</span
+            ><span id="cmp-status" role="status" aria-live="polite"></span>
+          </div>
+        </section>
+        <section class="compare-grid" aria-label="Montagem das builds">
+          <article class="panel compare-build" data-side="a">
+            <div class="tool-panel-heading">
+              <div>
+                <span class="tool-kicker">BUILD A</span>
+                <h2>Configuração A</h2>
+              </div>
+              <button class="tool-button subtle" type="button" data-clear-side="a">
+                Limpar
+              </button>
+            </div>
+            <label class="tool-field"
+              >Campeão<select
+                id="cmp-champion-a"
+                aria-label="Campeão da build A"
+              ></select
+            ></label>
+            <label class="tool-field"
+              >Carregar build salva<select
+                id="cmp-saved-a"
+                aria-label="Carregar build salva para A"
+              >
+                <option value="">Escolha uma build salva</option>
+              </select></label
+            >
+            <div
+              class="compare-slots"
+              id="cmp-slots-a"
+              aria-label="Inventário da build A"
+            ></div>
+            <div class="compare-cost">
+              <span>Custo em ouro</span><strong id="cmp-cost-a">0</strong>
+            </div>
+            <div class="compare-stats" id="cmp-stats-a"></div>
+            <button
+              class="tool-button compare-edit is-active"
+              type="button"
+              data-edit-side="a"
+            >
+              Adicionar itens à Build A
+            </button>
+          </article>
+          <article class="panel compare-build" data-side="b">
+            <div class="tool-panel-heading">
+              <div>
+                <span class="tool-kicker">BUILD B</span>
+                <h2>Configuração B</h2>
+              </div>
+              <button class="tool-button subtle" type="button" data-clear-side="b">
+                Limpar
+              </button>
+            </div>
+            <label class="tool-field"
+              >Campeão<select
+                id="cmp-champion-b"
+                aria-label="Campeão da build B"
+              ></select
+            ></label>
+            <label class="tool-field"
+              >Carregar build salva<select
+                id="cmp-saved-b"
+                aria-label="Carregar build salva para B"
+              >
+                <option value="">Escolha uma build salva</option>
+              </select></label
+            >
+            <div
+              class="compare-slots"
+              id="cmp-slots-b"
+              aria-label="Inventário da build B"
+            ></div>
+            <div class="compare-cost">
+              <span>Custo em ouro</span><strong id="cmp-cost-b">0</strong>
+            </div>
+            <div class="compare-stats" id="cmp-stats-b"></div>
+            <button class="tool-button compare-edit" type="button" data-edit-side="b">
+              Adicionar itens à Build B
+            </button>
+          </article>
+        </section>
+        <section class="panel compare-result" aria-labelledby="cmp-result-title">
+          <div class="tool-panel-heading">
+            <div>
+              <span class="tool-kicker">LEITURA LADO A LADO</span>
+              <h2 id="cmp-result-title">Diferenças entre as builds</h2>
+            </div>
+            <p>
+              Os atributos mostram números calculáveis; isso não determina qual build é
+              melhor em toda partida.
+            </p>
+          </div>
+          <div id="cmp-differences" class="compare-differences">
+            <p>Escolha campeões e itens para comparar.</p>
+          </div>
+        </section>
+        <section class="panel tool-catalog" aria-labelledby="cmp-items-title">
+          <div class="tool-panel-heading">
+            <div>
+              <span class="tool-kicker">LOJA · SUMMONER’S RIFT</span>
+              <h2 id="cmp-items-title">Catálogo oficial</h2>
+            </div>
+            <span id="cmp-item-count" class="patch">— itens</span>
+          </div>
+          <div class="tool-filters">
+            <label class="tool-search"
+              ><span aria-hidden="true">⌕</span
+              ><input
+                id="cmp-item-search"
+                type="search"
+                placeholder="Buscar item por nome ou ID…"
+                aria-label="Buscar item" /></label
+            ><label class="tool-field"
+              >Categoria<select id="cmp-category">
+                <option value="all">Todas as categorias</option>
+                <option value="attack">Ataque</option>
+                <option value="magic">Magia</option>
+                <option value="defense">Defesa</option>
+                <option value="boots">Botas</option>
+                <option value="other">Outros</option>
+              </select></label
+            >
+          </div>
+          <p class="tool-hint">
+            Destino atual: <strong id="cmp-active-side">Build A · espaço 1</strong>.
+            Clique em um espaço para selecioná-lo e depois escolha um item.
+          </p>
+          <div
+            id="cmp-items"
+            class="compare-item-grid"
+            aria-live="polite"
+            aria-busy="true"
+          ></div>
+        </section>
+      </main>
+      <footer class="footer">
+        <span><strong>riftlab</strong> · Build Comparator</span
+        ><span
+          >Dados estáticos oficiais de League of Legends · não afiliado à Riot
+          Games.</span
+        >
+      </footer>
+    </div>
+    <script src="./build-core.js"></script>
+    <script src="./build-comparator.js"></script>
+  </body>
+</html>

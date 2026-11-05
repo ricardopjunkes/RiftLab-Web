@@ -1,0 +1,1163 @@
+.tool-page {
+  width: min(100%, 1380px);
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 56px) 0 72px;
+}
+
+.tool-hero {
+  margin: 0 auto 28px;
+  max-width: 940px;
+  text-align: center;
+}
+.tool-hero .eyebrow,
+.tool-kicker {
+  color: var(--lime);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.tool-hero h1 {
+  margin: 12px 0 8px;
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+.tool-hero h1 span {
+  color: var(--lime);
+}
+.tool-hero > p {
+  margin: 0 auto;
+  max-width: 680px;
+  color: var(--muted);
+  font-size: 15px;
+}
+.tool-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  min-height: 34px;
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.patch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgb(199 243 107 / 20%);
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: rgb(199 243 107 / 6%);
+  color: #d8edb1;
+  font-size: 11px;
+}
+.panel {
+  min-width: 0;
+  border: 1px solid rgb(77 98 124 / 38%);
+  border-radius: 15px;
+  background: linear-gradient(150deg, rgb(18 28 42 / 94%), rgb(11 17 27 / 96%));
+  box-shadow: 0 12px 32px rgb(0 0 0 / 15%);
+}
+.tool-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.tool-panel-heading h2 {
+  margin: 5px 0 0;
+  color: var(--text);
+  font-size: 18px;
+  letter-spacing: -0.025em;
+}
+.tool-panel-heading > p,
+.tool-panel-heading > span {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.tool-field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: #c1ccda;
+  font-size: 11px;
+  font-weight: 700;
+}
+.tool-field input,
+.tool-field select,
+.tool-search input {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  border: 1px solid #314258;
+  border-radius: 9px;
+  padding: 0 12px;
+  outline: none;
+  background: #0a111b;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease;
+}
+.tool-field input:focus,
+.tool-field select:focus,
+.tool-search input:focus {
+  border-color: var(--lime);
+  box-shadow: var(--focus-ring);
+}
+.tool-button {
+  min-height: 40px;
+  border: 1px solid #3a4c63;
+  border-radius: 9px;
+  padding: 0 14px;
+  background: #172335;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease;
+}
+.tool-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--lime);
+  background: #202f40;
+}
+.tool-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+.tool-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.tool-button.primary {
+  border-color: transparent;
+  background: var(--lime);
+  color: #10170b;
+}
+.tool-button.primary:hover:not(:disabled) {
+  background: #d7ff86;
+}
+.tool-button.subtle {
+  background: transparent;
+  color: #b8c4d3;
+}
+.tool-hint {
+  margin: 10px 0 14px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+.tool-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  border: 1px dashed #36475a;
+  border-radius: 10px;
+  padding: 22px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 13px;
+}
+
+/* Build Comparator */
+.compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.compare-build,
+.compare-result,
+.tool-catalog {
+  padding: clamp(16px, 2.2vw, 24px);
+}
+.compare-build > .tool-field + .tool-field {
+  margin-top: 12px;
+}
+.compare-slots {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0;
+}
+.compare-slot,
+.compare-slot-item {
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid #35465b;
+  border-radius: 10px;
+  background: #090f18;
+  color: var(--text);
+}
+.compare-slot.active,
+.compare-slot-item:hover {
+  border-color: var(--lime);
+  box-shadow:
+    inset 0 0 0 1px rgb(199 243 107 / 25%),
+    0 0 16px rgb(199 243 107 / 9%);
+}
+.compare-slot.empty {
+  cursor: pointer;
+}
+.compare-slot.empty span {
+  color: #76869b;
+  font-size: 22px;
+}
+.compare-slot.empty small {
+  position: absolute;
+  right: 6px;
+  bottom: 3px;
+  color: #8392a5;
+  font-size: 9px;
+}
+.compare-slot.filled {
+  border: 0;
+  background: transparent;
+}
+.compare-slot-item {
+  cursor: pointer;
+  padding: 0;
+}
+.compare-slot-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.compare-slot-item span {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  padding: 14px 4px 4px;
+  background: linear-gradient(transparent, rgb(4 8 13 / 92%));
+  color: #f3f5f8;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.compare-slot-remove {
+  position: absolute;
+  z-index: 1;
+  top: 2px;
+  right: 3px;
+  display: grid;
+  width: 19px;
+  height: 19px;
+  place-items: center;
+  border: 1px solid #526177;
+  border-radius: 50%;
+  background: #0c1420;
+  color: white;
+  line-height: 1;
+  cursor: pointer;
+}
+.compare-slot-remove:hover {
+  border-color: #ff8c85;
+  color: #ffaaa4;
+}
+.compare-cost {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-top: 1px solid rgb(67 85 108 / 34%);
+  border-bottom: 1px solid rgb(67 85 108 / 34%);
+  color: var(--muted);
+  font-size: 12px;
+}
+.compare-cost strong {
+  color: var(--gold);
+  font-size: 17px;
+}
+.compare-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 14px;
+  min-height: 48px;
+  padding: 12px 0;
+}
+.compare-stats > p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.compare-stat {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid rgb(67 85 108 / 22%);
+  padding: 5px 0;
+  color: #aab7c8;
+  font-size: 10px;
+}
+.compare-stat strong {
+  color: var(--text);
+  font-size: 10px;
+  white-space: nowrap;
+}
+.compare-edit {
+  width: 100%;
+}
+.compare-edit.is-active {
+  border-color: rgb(199 243 107 / 55%);
+  color: var(--lime);
+}
+.compare-result {
+  margin-top: 16px;
+}
+.compare-differences {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 22px;
+}
+.compare-differences > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.compare-diff-row {
+  min-width: 0;
+  padding: 11px 0;
+  border-top: 1px solid rgb(67 85 108 / 30%);
+}
+.compare-diff-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 7px;
+  color: #d9e1ec;
+  font-size: 11px;
+}
+.compare-diff-heading strong {
+  color: var(--lime);
+  font-size: 10px;
+  text-align: right;
+}
+.compare-bars {
+  display: grid;
+  gap: 5px;
+}
+.compare-bar-line {
+  display: grid;
+  grid-template-columns: 14px minmax(50px, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 9px;
+}
+.compare-bar-line > b {
+  color: #e5edf7;
+}
+.compare-bar-line > span {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #202c3b;
+}
+.compare-bar-line i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--rift-blue);
+  transition: width 0.3s ease;
+}
+.compare-bar-line i.bar-b {
+  background: var(--rift-red);
+}
+.compare-bar-line small {
+  min-width: 52px;
+  color: #d2dbe6;
+  text-align: right;
+}
+.tool-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 12px;
+}
+.tool-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.tool-search > span {
+  position: absolute;
+  left: 12px;
+  color: var(--lime);
+  font-size: 20px;
+}
+.tool-search input {
+  padding-left: 40px;
+}
+.compare-item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+.compare-item {
+  display: flex;
+  min-width: 0;
+  min-height: 67px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgb(75 95 120 / 35%);
+  border-radius: 10px;
+  padding: 8px;
+  background: #0d1520;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+.compare-item:hover {
+  transform: translateY(-1px);
+  border-color: rgb(199 243 107 / 65%);
+  background: #14202d;
+}
+.compare-item img {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border: 1px solid #3b4d61;
+  border-radius: 7px;
+  object-fit: cover;
+}
+.compare-item > span {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+.compare-item strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.compare-item small {
+  color: var(--muted);
+  font-size: 9px;
+}
+.compare-item > b {
+  margin-left: auto;
+  color: var(--lime);
+  font-size: 18px;
+}
+
+/* Rune Lab */
+.rune-champion-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 340px);
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 16px;
+  padding: 14px;
+}
+.rune-champion-card {
+  position: relative;
+  display: flex;
+  min-height: 88px;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  border: 1px solid #29394d;
+  border-radius: 10px;
+  padding: 10px 16px;
+  background: linear-gradient(105deg, #101a27, #0b121c);
+  color: #aebbd0;
+  font-size: 12px;
+}
+.rune-champion-card img {
+  width: 64px;
+  height: 64px;
+  border: 1px solid rgb(199 243 107 / 45%);
+  border-radius: 9px;
+  object-fit: cover;
+}
+.rune-champion-card > span:last-child {
+  display: grid;
+  gap: 3px;
+}
+.rune-champion-card small {
+  color: var(--lime);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.rune-champion-card strong {
+  color: var(--text);
+  font-size: 21px;
+}
+.rune-champion-card em {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+}
+.rune-champion-emblem {
+  color: var(--lime);
+  font-size: 28px;
+}
+.rune-builder-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.rune-tree-panel,
+.rune-shards-panel,
+.rune-save-panel {
+  min-width: 0;
+  padding: clamp(16px, 2.2vw, 22px);
+}
+.compact-field {
+  min-width: min(190px, 48%);
+}
+.rune-slot-list {
+  display: grid;
+  gap: 14px;
+}
+.rune-row {
+  min-width: 0;
+}
+.rune-row-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #dce5ef;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+.rune-row-heading small {
+  color: #8898ac;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-align: right;
+}
+.rune-choice-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+.rune-choice {
+  display: flex;
+  min-width: 0;
+  min-height: 59px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #2a394d;
+  border-radius: 9px;
+  padding: 7px 9px;
+  background: #0b121b;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.rune-choice:hover {
+  border-color: #77899f;
+  background: #121d2a;
+}
+.rune-choice.selected {
+  border-color: var(--lime);
+  background: linear-gradient(100deg, rgb(199 243 107 / 10%), #0c141e 70%);
+  box-shadow: inset 3px 0 var(--lime);
+}
+.rune-choice img {
+  width: 37px;
+  height: 37px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+.rune-choice > span,
+.rune-shard > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.rune-choice strong,
+.rune-shard strong {
+  color: #e9edf3;
+  font-size: 11px;
+}
+.rune-choice small,
+.rune-shard small {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #a3b0c2;
+  font-size: 9px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.rune-shards-panel,
+.rune-save-panel {
+  margin-top: 16px;
+}
+.rune-shard-rows {
+  display: grid;
+  gap: 12px;
+}
+.rune-shard-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.rune-shard {
+  display: flex;
+  min-width: 0;
+  min-height: 75px;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #2a394d;
+  border-radius: 9px;
+  padding: 8px;
+  background: #0b121b;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.rune-shard:hover {
+  border-color: #72859b;
+}
+.rune-shard.selected {
+  border-color: var(--lime);
+  background: rgb(199 243 107 / 7%);
+}
+.rune-shard img {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+.rune-save-form {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) auto auto;
+  align-items: end;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.saved-tool-list {
+  display: grid;
+  gap: 7px;
+}
+.saved-tool-row {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid rgb(68 86 108 / 30%);
+  border-radius: 9px;
+  padding: 8px;
+  background: rgb(7 12 19 / 50%);
+}
+.saved-tool-row > img,
+.strategy-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 7px;
+  background: #1c2a3a;
+  color: var(--lime);
+  object-fit: cover;
+}
+.saved-tool-row > span:not(.strategy-icon) {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.saved-tool-row strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.saved-tool-row small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.saved-tool-row button {
+  border: 1px solid #34465b;
+  border-radius: 7px;
+  padding: 6px 9px;
+  background: #111b28;
+  color: #cdd7e3;
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+.saved-tool-row button:hover {
+  border-color: var(--lime);
+  color: var(--lime);
+}
+.saved-tool-row button.saved-delete {
+  padding-inline: 9px;
+  color: #ffaaa4;
+}
+
+/* Rift Map */
+.rift-map-layout {
+  display: grid;
+  grid-template-columns: minmax(210px, 260px) minmax(320px, 1fr) minmax(220px, 280px);
+  gap: 14px;
+  align-items: start;
+}
+.map-toolbar,
+.map-workspace,
+.map-strategy-panel {
+  min-width: 0;
+  padding: 15px;
+}
+.map-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.map-tool-grid button {
+  display: flex;
+  min-width: 0;
+  min-height: 40px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #2b3b50;
+  border-radius: 8px;
+  padding: 5px 7px;
+  background: #0b121b;
+  color: #c8d2df;
+  text-align: left;
+  font: inherit;
+  font-size: 9px;
+  cursor: pointer;
+}
+.map-tool-grid button i {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 6px;
+  background: #19283a;
+  color: var(--lime);
+  font-style: normal;
+  font-weight: 800;
+}
+.map-tool-grid button:hover {
+  border-color: #7990a8;
+}
+.map-tool-grid button[aria-pressed='true'] {
+  border-color: var(--lime);
+  background: rgb(199 243 107 / 8%);
+  color: #eff7e0;
+  box-shadow: inset 0 0 0 1px rgb(199 243 107 / 13%);
+}
+.map-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0;
+  color: #c4cfdd;
+  font-size: 11px;
+}
+.map-toggle input {
+  accent-color: var(--lime);
+}
+.map-controls,
+.map-control-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.map-controls {
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.map-control-group button {
+  min-height: 31px;
+  border: 1px solid #35475d;
+  border-radius: 7px;
+  padding: 0 8px;
+  background: #101a27;
+  color: #d5deea;
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+.map-control-group button:hover:not(:disabled) {
+  border-color: var(--lime);
+  color: var(--lime);
+}
+.map-control-group button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.map-control-group input[type='range'] {
+  width: 75px;
+  accent-color: var(--lime);
+}
+.map-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid #354b61;
+  border-radius: 11px;
+  background: #07101b;
+  touch-action: none;
+  user-select: none;
+}
+.map-viewport[data-tool='pan'] {
+  cursor: grab;
+}
+.map-viewport[data-tool='pan']:active {
+  cursor: grabbing;
+}
+.map-viewport[data-tool^='route-'],
+.map-viewport[data-tool^='arrow-'] {
+  cursor: crosshair;
+}
+.map-viewport[data-tool='eraser'] {
+  cursor: cell;
+}
+.map-canvas {
+  position: absolute;
+  inset: 0;
+  transform-origin: center;
+  will-change: transform;
+}
+.map-canvas > img,
+.map-canvas > svg,
+.map-markers {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.map-canvas > img {
+  object-fit: cover;
+  filter: brightness(1.24) contrast(1.08) saturate(0.9);
+  pointer-events: none;
+}
+#map-routes {
+  overflow: visible;
+  pointer-events: none;
+}
+#map-routes .route-blue,
+#map-routes .route-red {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 1px 3px #000);
+}
+#map-routes .route-blue {
+  stroke: #79bbff;
+}
+#map-routes .route-red {
+  stroke: #ff858a;
+}
+#map-routes .draft-route {
+  stroke-dasharray: 7 5;
+  opacity: 0.72;
+}
+#map-region-labels {
+  pointer-events: none;
+}
+#map-region-labels text {
+  fill: rgb(239 244 250 / 92%);
+  font-family: Inter, Arial, sans-serif;
+  font-size: 19px;
+  font-weight: 800;
+  paint-order: stroke;
+  stroke: rgb(5 11 18 / 88%);
+  stroke-width: 5px;
+  letter-spacing: 1.5px;
+}
+#map-region-labels.hidden {
+  display: none;
+}
+.map-markers {
+  pointer-events: none;
+}
+.map-marker {
+  position: absolute;
+  display: grid;
+  width: clamp(22px, 3vw, 34px);
+  height: clamp(22px, 3vw, 34px);
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border: 2px solid #d1e6b2;
+  border-radius: 50%;
+  background: rgb(8 15 23 / 93%);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 65%);
+  color: #d9f5a5;
+  font-size: 12px;
+  font-weight: 900;
+  pointer-events: auto;
+  cursor: context-menu;
+}
+.map-marker.control,
+.map-marker.objective {
+  border-color: #e6ca75;
+  color: #f3d986;
+}
+.map-marker.enemy,
+.map-marker.danger,
+.map-marker.champ-red {
+  border-color: #ff9292;
+  color: #ff9292;
+}
+.map-marker.champ-blue {
+  border-color: #82c2ff;
+  color: #82c2ff;
+}
+.map-marker.interest {
+  color: #d8c1ff;
+}
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 9px;
+  color: #a5b2c3;
+  font-size: 9px;
+}
+.map-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.map-legend > span:last-child {
+  flex-basis: 100%;
+  color: #78899d;
+}
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lime);
+}
+.legend-dot.blue {
+  background: var(--rift-blue);
+}
+.legend-dot.red {
+  background: var(--rift-red);
+}
+.legend-dot.gold {
+  background: var(--gold);
+}
+.map-save-actions {
+  display: grid;
+  gap: 7px;
+  margin: 12px 0;
+}
+.map-region-key {
+  margin-top: 15px;
+  border-top: 1px solid rgb(67 85 108 / 30%);
+  padding-top: 11px;
+}
+.map-region-key h3 {
+  margin: 0 0 8px;
+  color: #d9e2ed;
+  font-size: 11px;
+}
+.map-region-key p {
+  margin: 4px 0;
+  color: #9eacbf;
+  font-size: 9px;
+}
+.map-region-key small {
+  display: block;
+  margin-top: 7px;
+  color: #78899d;
+  font-size: 9px;
+}
+
+@media (max-width: 1100px) {
+  .rift-map-layout {
+    grid-template-columns: minmax(200px, 250px) minmax(0, 1fr);
+  }
+  .map-strategy-panel {
+    grid-column: 1 / -1;
+  }
+  .map-strategy-panel .saved-tool-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .tool-page {
+    padding-top: 24px;
+  }
+  .compare-grid,
+  .rune-builder-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .compare-differences {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rune-champion-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rune-champion-panel > .tool-field {
+    grid-row: 1;
+  }
+  .rift-map-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .map-strategy-panel {
+    grid-column: auto;
+  }
+  .map-toolbar {
+    order: 0;
+  }
+  .map-workspace {
+    order: 1;
+  }
+  .map-strategy-panel {
+    order: 2;
+  }
+  .map-tool-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .map-tool-grid button {
+    flex-direction: column;
+    justify-content: center;
+    min-height: 55px;
+    gap: 3px;
+    text-align: center;
+  }
+  .map-tool-grid button span {
+    font-size: 8px;
+  }
+  .map-strategy-panel .saved-tool-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .compare-item-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .tool-page {
+    padding-inline: 0;
+  }
+  .tool-hero {
+    margin-bottom: 20px;
+  }
+  .tool-hero > p {
+    font-size: 13px;
+  }
+  .tool-panel-heading {
+    align-items: flex-start;
+  }
+  .tool-panel-heading h2 {
+    font-size: 16px;
+  }
+  .compare-build,
+  .compare-result,
+  .tool-catalog,
+  .rune-tree-panel,
+  .rune-shards-panel,
+  .rune-save-panel,
+  .map-toolbar,
+  .map-workspace,
+  .map-strategy-panel {
+    padding: 13px;
+  }
+  .compare-slots {
+    gap: 5px;
+  }
+  .compare-slot,
+  .compare-slot-item {
+    border-radius: 7px;
+  }
+  .compare-slot-item span {
+    font-size: 7px;
+  }
+  .compare-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tool-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .compare-item-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rune-tree-panel .tool-panel-heading {
+    flex-direction: column;
+  }
+  .compact-field {
+    width: 100%;
+  }
+  .rune-shard-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rune-save-form {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .rune-save-form .tool-field {
+    grid-column: 1 / -1;
+  }
+  .saved-tool-row {
+    grid-template-columns: 28px minmax(0, 1fr) auto auto;
+    gap: 6px;
+    padding: 6px;
+  }
+  .saved-tool-row button {
+    padding: 6px;
+    font-size: 9px;
+  }
+  .map-tool-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .map-controls {
+    align-items: stretch;
+  }
+  .map-control-group {
+    justify-content: center;
+  }
+  #map-region-labels text {
+    font-size: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tool-page *,
+  .tool-page *::before,
+  .tool-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

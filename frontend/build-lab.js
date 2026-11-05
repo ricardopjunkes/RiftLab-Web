@@ -1,24 +1,6 @@
 const BUILD_STORAGE_KEY = 'riftlab-build-lab-v1';
 const BUILD_SLOT_COUNT = 6;
-const BUILD_STATS = [
-  ['attackDamage', 'Dano de ataque', 'FlatPhysicalDamageMod', 'physical'],
-  ['abilityPower', 'Poder de habilidade', 'FlatMagicDamageMod', 'magic'],
-  ['health', 'Vida', 'FlatHPPoolMod', 'health'],
-  ['armor', 'Armadura', 'FlatArmorMod', 'defense'],
-  ['magicResist', 'Resistência mágica', 'FlatSpellBlockMod', 'defense'],
-  ['attackSpeed', 'Velocidade de ataque', 'PercentAttackSpeedMod', 'percent'],
-  ['mana', 'Mana', 'FlatMPPoolMod', 'flat'],
-  [
-    'movementSpeedPercent',
-    'Velocidade de movimento',
-    'PercentMovementSpeedMod',
-    'percent',
-  ],
-  ['haste', 'Aceleração de habilidade', 'FlatHasteMod', 'flat'],
-  ['critChance', 'Chance de crítico', 'FlatCritChanceMod', 'percent'],
-  ['movementSpeed', 'Velocidade de movimento', 'FlatMovementSpeedMod', 'flat'],
-  ['lifeSteal', 'Roubo de vida', 'PercentLifeStealMod', 'percent'],
-];
+const BUILD_STATS = window.RiftBuildCore.BUILD_STATS;
 const ui = {
   patch: document.querySelector('#build-patch'),
   champions: document.querySelector('#build-champions'),
@@ -99,47 +81,18 @@ function formatNumber(value, decimals = 0) {
 }
 
 async function fetchJson(url) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Falha ao carregar dados (${response.status}).`);
-  return response.json();
+  return window.RiftBuildCore.fetchJson(url);
 }
 
 async function initializeBuildLab() {
   try {
-    const versions = await fetchJson(
-      'https://ddragon.leagueoflegends.com/api/versions.json',
-    );
-    state.patch = versions[0];
+    const data = await window.RiftBuildCore.loadStaticData();
+    state.patch = data.patch;
     ui.patch.textContent = `Data Dragon · patch ${state.patch}`;
-    const [championCatalog, itemCatalog] = await Promise.all([
-      fetchJson(
-        `https://ddragon.leagueoflegends.com/cdn/${state.patch}/data/pt_BR/champion.json`,
-      ),
-      fetchJson(
-        `https://ddragon.leagueoflegends.com/cdn/${state.patch}/data/pt_BR/item.json`,
-      ),
-    ]);
-    state.champions = Object.values(championCatalog.data).sort((a, b) =>
-      a.name.localeCompare(b.name, 'pt-BR'),
-    );
-    const availableItems = Object.entries(itemCatalog.data)
-      .map(([id, item]) => ({ id, ...item }))
-      .filter(isAvailableItem);
-    state.items = [
-      ...new Map(
-        availableItems.map((item) => [
-          [
-            item.name,
-            item.gold.total,
-            JSON.stringify(item.stats || {}),
-            normalize(cleanDescription(item.description)),
-          ].join('|'),
-          item,
-        ]),
-      ).values(),
-    ].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-    state.groups = itemCatalog.groups || {};
-    state.itemById = new Map(state.items.map((item) => [item.id, item]));
+    state.champions = data.champions;
+    state.items = data.items;
+    state.groups = data.groups;
+    state.itemById = data.itemById;
     ui.champions.setAttribute('aria-busy', 'false');
     ui.items.setAttribute('aria-busy', 'false');
     renderChampions();
@@ -161,19 +114,6 @@ async function initializeBuildLab() {
       'Os dados oficiais não carregaram. Nenhum dado foi substituído por valores fictícios.';
     console.error('Build Lab: erro ao carregar o Data Dragon.', error);
   }
-}
-
-function isAvailableItem(item) {
-  return (
-    item.maps?.['11'] === true &&
-    item.gold?.purchasable === true &&
-    item.inStore !== false &&
-    item.hideFromAll !== true &&
-    !item.requiredAlly &&
-    Number(item.gold.total) > 0 &&
-    item.name &&
-    item.image?.full
-  );
 }
 
 function renderChampions() {
@@ -278,18 +218,18 @@ function renderItems() {
   const list = state.items.filter((item) => {
     const searchMatch =
       normalize(item.name).includes(query) ||
-      normalize(cleanDescription(item.description)).includes(query);
+      normalize(cleanDescription(item.description)).includes(query) ||
+      normalize(item.id).includes(query);
     return searchMatch && (category === 'all' || itemCategory(item) === category);
   });
   ui.itemCount.textContent = `${list.length} ${list.length === 1 ? 'item' : 'itens'}`;
   ui.items.innerHTML = list.length
     ? list
         .map((item) => {
-          const effect = cleanDescription(item.description);
           return `<article class="build-item-card">
       <button class="build-item-add-button" type="button" data-item-id="${item.id}" aria-label="Adicionar ${escapeHtml(item.name)} à build">
         <span class="build-item-image"><img src="https://ddragon.leagueoflegends.com/cdn/${state.patch}/img/item/${escapeHtml(item.image.full)}" alt="" loading="lazy"></span>
-        <span class="build-item-copy"><strong>${escapeHtml(item.name)}</strong><small>${formatNumber(item.gold.total)} ouro</small><span>${escapeHtml(itemSummary(item))}</span></span>
+        <span class="build-item-copy"><strong>${escapeHtml(item.displayName || item.name)}</strong><small>${formatNumber(item.gold.total)} ouro · ID ${escapeHtml(item.id)}</small><span>${escapeHtml(itemSummary(item))}</span></span>
         <span class="build-item-add" aria-hidden="true">＋</span>
       </button><button class="build-item-info" type="button" data-item-info="${item.id}" aria-label="Ver descrição de ${escapeHtml(item.name)}">i</button>
     </article>`;
@@ -370,17 +310,6 @@ function itemSummary(item) {
   return pieces.join(' · ');
 }
 
-function hasUniqueConflict(item, targetIndex) {
-  const targetGroup = item.group && state.groups[item.group];
-  const maxOwned = Number(targetGroup?.maxGroupOwnable || 0);
-  if (!maxOwned) return false;
-  return (
-    state.slots.filter(
-      (existing, index) => index !== targetIndex && existing?.group === item.group,
-    ).length >= maxOwned
-  );
-}
-
 function addItem(id) {
   const item = state.itemById.get(id);
   if (!item || state.loadError) return;
@@ -393,8 +322,16 @@ function addItem(id) {
     notifyBuild('Inventário completo: o limite é de seis itens.');
     return;
   }
-  if (hasUniqueConflict(item, target)) {
-    notifyBuild('Este item não pode ser combinado com outro do mesmo grupo exclusivo.');
+  const selected = state.slots.filter(
+    (existing, index) => existing && index !== target,
+  );
+  const validation = window.RiftBuildCore.canAddItem(
+    item,
+    selected,
+    state.champion?.id || '',
+  );
+  if (!validation.allowed) {
+    notifyBuild(validation.reason);
     return;
   }
   state.slots[target] = item;
@@ -415,8 +352,8 @@ function renderSlots() {
       item
         ? `
     <div class="build-slot filled ${state.activeSlot === index ? 'active' : ''} ${state.recentSlot === index ? 'build-slot-recent' : ''}">
-      <button type="button" class="build-slot-select" data-slot-index="${index}" aria-label="Selecionar espaço ${index + 1}: ${escapeHtml(item.name)}"><img src="https://ddragon.leagueoflegends.com/cdn/${state.patch}/img/item/${escapeHtml(item.image.full)}" alt="${escapeHtml(item.name)}"><span class="build-slot-number">${index + 1}</span></button>
-      <span class="build-slot-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span><button class="build-slot-remove" type="button" data-remove-slot="${index}" aria-label="Remover ${escapeHtml(item.name)}">×</button>
+      <button type="button" class="build-slot-select" data-slot-index="${index}" aria-label="Selecionar espaço ${index + 1}: ${escapeHtml(item.displayName || item.name)}"><img src="https://ddragon.leagueoflegends.com/cdn/${state.patch}/img/item/${escapeHtml(item.image.full)}" alt="${escapeHtml(item.displayName || item.name)}"><span class="build-slot-number">${index + 1}</span></button>
+      <span class="build-slot-name" title="${escapeHtml(item.displayName || item.name)}">${escapeHtml(item.displayName || item.name)}</span><button class="build-slot-remove" type="button" data-remove-slot="${index}" aria-label="Remover ${escapeHtml(item.name)}">×</button>
     </div>`
         : `
     <button class="build-slot empty ${state.activeSlot === index ? 'active' : ''}" type="button" data-slot-index="${index}" aria-label="Selecionar espaço vazio ${index + 1}"><span class="build-slot-plus">＋</span><small>Espaço ${index + 1}</small></button>`,
@@ -442,17 +379,16 @@ function renderSlots() {
 }
 
 function itemBonuses() {
-  return state.slots.filter(Boolean).reduce((total, item) => {
-    for (const [, , key] of BUILD_STATS)
-      total[key] = (total[key] || 0) + Number(item.stats?.[key] || 0);
-    return total;
-  }, {});
+  return window.RiftBuildCore.calculateBuild(state.championDetail, state.slots).bonuses;
 }
 
 function renderStats() {
   const chosen = state.slots.filter(Boolean);
-  const bonuses = itemBonuses();
-  const cost = chosen.reduce((sum, item) => sum + Number(item.gold.total || 0), 0);
+  const calculated = window.RiftBuildCore.calculateBuild(
+    state.championDetail,
+    state.slots,
+  );
+  const { bonuses, cost, base, total } = calculated;
   ui.cost.innerHTML = `${formatNumber(cost)} <small>ouro</small>`;
   if (!state.championDetail) {
     ui.baseStats.innerHTML = '<p>Selecione um campeão.</p>';
@@ -463,54 +399,60 @@ function renderStats() {
     ui.save.disabled = !chosen.length;
     return;
   }
-  const base = baseStats(state.championDetail);
-  const shownStats = [
-    ['Dano de ataque', 'FlatPhysicalDamageMod', 'attackdamage'],
-    ['Poder de habilidade', 'FlatMagicDamageMod', null],
-    ['Vida', 'FlatHPPoolMod', 'hp'],
-    ['Armadura', 'FlatArmorMod', 'armor'],
-    ['Resistência mágica', 'FlatSpellBlockMod', 'spellblock'],
-    ['Velocidade de ataque', 'PercentAttackSpeedMod', 'attackspeed'],
-    ['Mana', 'FlatMPPoolMod', 'mp'],
-    ['Aceleração de habilidade', 'FlatHasteMod', null],
-    ['Chance de crítico', 'FlatCritChanceMod', null],
-    ['Velocidade de movimento', 'FlatMovementSpeedMod', 'movespeed'],
-    ['Roubo de vida', 'PercentLifeStealMod', null],
+  const baseRows = [
+    ['Dano de ataque', base.attackDamage, 'flat'],
+    ['Vida', base.health, 'flat'],
+    ['Armadura', base.armor, 'flat'],
+    ['Resistência mágica', base.magicResist, 'flat'],
+    ['Velocidade de ataque', base.attackSpeed, 'attackSpeed'],
+    ['Mana', base.mana, 'flat'],
+    ['Velocidade de movimento', base.movementSpeed, 'flat'],
   ];
-  ui.baseStats.innerHTML = renderStatRows(
-    shownStats
-      .filter(
-        ([, key]) =>
-          key !== 'FlatCritChanceMod' &&
-          key !== 'PercentLifeStealMod' &&
-          key !== 'FlatHasteMod',
-      )
-      .map(([name, , baseKey]) => {
-        const row = base.find(([label]) => label === name);
-        return row || [name, 0];
-      }),
-  );
+  ui.baseStats.innerHTML = renderStatRows(baseRows);
   ui.bonusStats.innerHTML = renderBonusRows(bonuses);
+  const totalRows = [
+    [
+      'Dano de ataque',
+      total.attackDamage,
+      'flat',
+      base.attackDamage,
+      bonuses.FlatPhysicalDamageMod,
+    ],
+    ['Poder de habilidade', total.abilityPower, 'flat', 0, bonuses.FlatMagicDamageMod],
+    ['Vida', total.health, 'flat', base.health, bonuses.FlatHPPoolMod],
+    ['Armadura', total.armor, 'flat', base.armor, bonuses.FlatArmorMod],
+    [
+      'Resistência mágica',
+      total.magicResist,
+      'flat',
+      base.magicResist,
+      bonuses.FlatSpellBlockMod,
+    ],
+    [
+      'Velocidade de ataque',
+      total.attackSpeed,
+      'attackSpeed',
+      base.attackSpeed,
+      bonuses.PercentAttackSpeedMod,
+    ],
+    ['Mana', total.mana, 'flat', base.mana, bonuses.FlatMPPoolMod],
+    ['Aceleração de habilidade', total.haste, 'flat', 0, bonuses.FlatHasteMod],
+    ['Chance de crítico', total.critChance, 'percent', 0, bonuses.FlatCritChanceMod],
+    [
+      'Velocidade de movimento',
+      total.movementSpeed,
+      'flat',
+      base.movementSpeed,
+      bonuses.FlatMovementSpeedMod || bonuses.PercentMovementSpeedMod,
+    ],
+    ['Roubo de vida', total.lifeSteal, 'percent', 0, bonuses.PercentLifeStealMod],
+  ].filter(([, , , baseValue, bonus]) => baseValue || bonus);
   ui.totalStats.innerHTML =
-    shownStats
-      .map(([name, itemKey, baseKey]) => {
-        const bonus = bonuses[itemKey] || 0;
-        const baseValue = base.find(([label]) => label === name)?.[1] || 0;
-        if (!bonus && !(baseValue && name === 'Velocidade de ataque')) return '';
-        let total = baseValue + bonus;
-        if (itemKey === 'PercentAttackSpeedMod') total = baseValue * (1 + bonus);
-        if (itemKey === 'FlatMovementSpeedMod')
-          total *= 1 + (bonuses.PercentMovementSpeedMod || 0);
-        const format =
-          itemKey === 'PercentAttackSpeedMod'
-            ? 'attackSpeed'
-            : itemKey.startsWith('Percent') ||
-                itemKey === 'FlatCritChanceMod' ||
-                itemKey === 'PercentLifeStealMod'
-              ? 'percent'
-              : 'flat';
-        return `<div class="build-stat-row ${bonus > 0 ? 'is-increased' : ''}"><span>${statIcon(name)}${escapeHtml(name)}</span><strong>${formatStat(total, format)}</strong></div>`;
-      })
+    totalRows
+      .map(
+        ([name, value, format, , bonus]) =>
+          `<div class="build-stat-row ${bonus > 0 ? 'is-increased' : ''}"><span>${statIcon(name)}${escapeHtml(name)}</span><strong>${formatStat(value, format)}</strong></div>`,
+      )
       .join('') || '<p>Adicione itens para visualizar os totais.</p>';
   ui.save.disabled = false;
 }
@@ -586,14 +528,6 @@ function openItemDetail(id) {
   ui.itemDialogContent.innerHTML = `<div class="build-item-detail"><img src="https://ddragon.leagueoflegends.com/cdn/${state.patch}/img/item/${escapeHtml(item.image.full)}" alt=""><div><strong>${formatNumber(item.gold.total)} ouro</strong><p>${escapeHtml(cleanDescription(item.description) || 'Sem descrição oficial disponível.')}</p></div></div>`;
 }
 
-function getGroupMap() {
-  return Object.fromEntries(
-    state.items
-      .map((item) => [item.group, item.groups])
-      .filter(([id, groups]) => id && groups),
-  );
-}
-
 function openSaveDialog() {
   if (!state.champion) {
     notifyBuild('Selecione um campeão antes de salvar a build.');
@@ -657,15 +591,22 @@ function renderSavedBuilds() {
 async function loadSavedBuild(id) {
   const build = state.saved.find((item) => item.id === id);
   if (!build) return;
-  state.slots = Array(BUILD_SLOT_COUNT)
-    .fill(null)
-    .map((_, index) => state.itemById.get(build.itemIds?.[index]) || null);
+  const result = window.RiftBuildCore.sanitizeBuildIds(
+    build.itemIds,
+    state.itemById,
+    build.championId || '',
+  );
+  state.slots = result.slots;
   state.activeSlot = state.slots.findIndex((item) => !item);
   if (state.activeSlot < 0) state.activeSlot = BUILD_SLOT_COUNT - 1;
   await selectChampion(build.championId);
   renderSlots();
   renderStats();
-  notifyBuild(`Build “${build.name}” carregada.`);
+  notifyBuild(
+    result.warnings.length
+      ? `Build carregada. ${result.warnings.length} item(ns) inválido(s) foram ignorados nesta sessão; o registro salvo foi preservado.`
+      : `Build “${build.name}” carregada.`,
+  );
 }
 
 function restoreBuildFromUrl() {

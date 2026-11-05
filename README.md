@@ -93,6 +93,13 @@ O Draft Simulator organiza os turnos de banimentos e escolhas para os lados azul
 
 O Matchup Explorer compara dois campeões por rota usando atributos e descrições de habilidades do Data Dragon do patch atual. Os recortes de início, meio e fim mostram atributos base ou crescimento por nível e contagens simples de termos das habilidades. Eles não representam medições reais de força por fase. O Riot Data Dragon não fornece taxas de vitória de confronto, então a ferramenta não inventa winrates nem afirma qual campeão venceria.
 
+## Build Comparator, Rune Lab e Rift Map
+
+- **Build Comparator** usa o mesmo catálogo e cálculo do Build Lab, permite montar duas builds independentes, importar builds salvas localmente e comparar custo e atributos. Os itens são identificados pelo ID oficial para manter variantes de mesmo nome distintas.
+- **Rune Lab** carrega árvores e runas do Data Dragon atual, valida a seleção principal/secundária e os fragmentos de atributos, e salva até 30 páginas no LocalStorage deste navegador. Os fragmentos aparecem na configuração, mas não são somados aos atributos de item do Build Lab.
+- **Rift Map** usa o mapa de Summoner’s Rift do Data Dragon para marcar visão, campeões e objetivos, desenhar rotas, desfazer/refazer, salvar estratégias no LocalStorage e exportar um PNG. Estratégias locais não sincronizam entre dispositivos.
+- `frontend/build-core.js` centraliza o carregamento e o cálculo compartilhado de itens para evitar divergência entre Build Lab e Comparator.
+
 ## Limitações
 
 - Taxas de confronto não são extraídas do OP.GG; a página abre o OP.GG para consulta manual.
